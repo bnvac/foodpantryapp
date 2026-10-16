@@ -1,363 +1,312 @@
-# Pantry — design
+# Pantry — design (v2)
 
-A small inventory app for a food pantry. Volunteers record what comes in and goes
-out. The app forecasts what will run short and publishes a public "what to bring"
-list to the pantry's website.
+A web app for running a food pantry's stockroom like a small warehouse. Staff and
+volunteers record what comes in and goes out, keep it organized by category and
+location, track expiry dates, and see what is running low before it runs out.
+Entry is by typing, or by taking a photo and letting AI draft the entries.
 
-Status: **design only, no code yet.** Open questions are at the bottom. Answers to
-them can change §3 (hosting) and §5.4 (kits), but nothing else.
+Status: **design only, no code yet.** v2 replaces the first draft after this
+feedback: the simplest online deployment, no barcodes (typing or AI from a
+photo), back-office only, no client records.
 
 ---
 
-## 1. Goals and non-goals
+## 1. Scope
 
-**Goals**
-1. Recording a donation takes about 5 seconds per item: scan or tap, enter the
-   quantity, done.
-2. Volunteers can always see what is on hand, what expires soon, and what is running low.
-3. A forecast a coordinator can explain to a board member: "We give out ~0.8 cans
-   of tuna per household and see ~120 households a week, so 4 weeks of cover is ~380 cans."
-4. A public needs list that updates itself, says when stock is plentiful as well as
-   short, and never shows sensitive data.
+**In**
+- Items, categories, storage locations, and stock in, out, adjusted or spoiled.
+- Expiry per batch, with oldest-first use.
+- Quick typed entry, plus AI entry from a photo or free text. A person always
+  reviews AI drafts before saving.
+- Low-stock and run-out forecasts, a reorder/"we need" list, stock counts,
+  reports and CSV export.
+- Logins for staff and volunteers.
 
-**Non-goals (v1)**
-- **No client/household records.** No names, addresses or income. We store only
-  aggregate counts per distribution day. Client PII brings privacy duties
-  (and possibly TEFAP record-keeping) that a hobby-grade app should not take on by
-  accident. If this is ever needed, it is a separate, deliberate project (see §9).
-- No procurement or ordering against food-bank portals.
-- No posting to social media. The webhook (§6.3) lets Zapier, Make or n8n do it.
-- No multi-site support. One pantry per install.
+**Out**
+- Barcodes and scanners.
+- Pantry clients (households, names, visits). The app never sees them.
+- A public website feed. The v1 needs widget is **parked**. It would come back as
+  one read-only page (§10).
+- Offline mode. It's online-only, with a paper tally sheet as a fallback.
 
 ---
 
 ## 2. Key decisions
 
-| # | Decision | Why | Runner-up / what would flip it |
+| # | Decision | Why | What would change it |
 |---|---|---|---|
-| D1 | **Python 3, stdlib only, SQLite (WAL)** | Matches Neb and its Nix packaging. There are no dependencies to keep updated for a volunteer org. ~10 screens and ~10 concurrent users fit easily. | Django (free admin, auth, CSRF, migrations). It would win if we take on client PII or several outside maintainers. |
-| D2 | **Append-only stock ledger** as the source of truth. On-hand is derived from it. | Corrections stay auditable. Forecasting needs the history anyway. Concurrent volunteers never conflict. Offline sync becomes a matter of replaying entries (§7). | Mutable `qty` column: simpler, but it loses history and makes forecasts impossible. |
-| D3 | **Track generic items, not brands.** Many barcodes map to one item ("Canned corn"). | Pantries plan in "canned corn", not "Del Monte 15.25 oz". | Per-SKU tracking: only worth it if we need recall matching by brand. Lots (§5) cover most of that. |
-| D4 | **The admin app is private. The public site gets a pushed static snapshot.** | The inventory server is never exposed to the internet. The public side is just `needs.json` plus a widget, which any static host can serve. | A public read API on the app. This only makes sense if the app is already on a VPS behind TLS, and even then a snapshot is safer. |
-| D5 | **Forecast = per-household usage rate × expected households (EWMA), with stockout weeks excluded.** No ML. | Explainable, works with ~6 weeks of data, holds up for small numbers. | Seasonal models (Holt-Winters). Revisit after 12+ months of data. |
-| D6 | **The public list shows need *levels* (Critical, Low, OK, Plenty), not counts.** | Donors act on levels. Counts go stale and invite second-guessing. | Optional per-category "~N needed", off by default. |
-| D7 | **Server-rendered HTML plus a little vanilla JS. Keyboard-wedge (USB/BT) scanners first, camera scanning as an extra.** | Wedge scanners cost ~$25, work in any browser and are fast. `BarcodeDetector` is still off by default on iOS Safari. | A JS decoder library for iPhone camera scanning, vendored as one file, if the pantry is iPhone-only. |
-| D8 | **Client-generated UUIDs on every ledger entry** (idempotency keys) from day one. | Adding offline support later (§7) needs no schema change, and double-submits are harmless. | None; it costs almost nothing. |
-| D9 | **Times stored in UTC, shown in `America/New_York`.** Weeks run Mon–Sun local time. | Distribution days are local. DST would otherwise skew weekly buckets. | — |
+| D1 | **Django 5.2 LTS + SQLite on a persistent volume.** This replaces v1's stdlib-only plan. | The app is now on the public internet. Hand-written logins, sessions and CSRF protection are exactly the code that shouldn't be home-made there. Django's admin site *is* the "backend to manage the place": add, edit, search and filter items, categories, locations, users and history for free. 5.2 is supported until April 2028. | Under ~3 users and never online would favour stdlib again. High write concurrency would favour Postgres (a one-line settings change). |
+| D2 | **Dependencies: `django`, `gunicorn`, `whitenoise`, `anthropic`**, pinned in `requirements.txt`. | The minimum for a public app with no extra services. Static files are served by the app itself. The official SDK gives retries and typed errors for the AI call. | — |
+| D3 | **Host on Railway** (Hobby, ~$5/mo): GitHub repo → auto-deploy on push, plus one volume at `/data` for SQLite. | The fewest moving parts: no Dockerfile, no CLI, HTTPS and a URL out of the box, and secrets are environment variables. | Fly.io is a little cheaper but needs a CLI and Dockerfile. **PythonAnywhere is ruled out:** the free tier blocks the Claude API, apps expire after 1 month, and its network filesystem makes SQLite unreliable. |
+| D4 | **Append-only stock log** (`Movement`). On-hand is computed from it. Mistakes are fixed with a reversing entry. | Auditable ("who logged 400 lbs of soup?"), feeds the forecast, and two volunteers can't overwrite each other. | — |
+| D5 | **Generic items** ("Canned tuna", not a brand and size). | Pantries plan by kind of food. It also makes AI matching much easier. | — |
+| D6 | **AI drafts, humans commit.** A photo or text goes to Claude, which returns a draft table, a person edits and confirms it, then it's saved. | Counting from a photo is error-prone: stacked or hidden cans, unreadable dates. The review step makes every AI mistake visible and cheap to fix. | Never. AI never writes stock directly. |
+| D7 | **Forecast on time, not households:** the weekly usage trend (a weighted average of recent weeks) gives weeks of cover. | With no client data, outflow per week is the signal. | — |
+| D8 | **Photos are not kept.** They are resized in the browser, sent once, and thrown away. Only the confirmed entries are stored. | No storage cost, nothing sensitive sitting around. | Keep for 30 days if you want an audit trail. |
+| D9 | **UTC stored, `America/New_York` shown**, weeks Mon–Sun. | — | — |
 
 ---
 
-## 3. Deployment shape
+## 3. Deployment
 
 ```
- ┌────────── pantry LAN / Tailscale ──────────┐        ┌──── public internet ────┐
- │                                            │        │                          │
- │  phones / tablet / laptop + USB scanner    │        │  pantry website (WP,     │
- │        │ HTTPS (Caddy) or LAN HTTP         │        │  Squarespace, etc.)      │
- │        ▼                                   │        │   <script needs-widget>  │
- │  pantry serve  (127.0.0.1:8090)            │  push  │        │ fetch           │
- │   ├─ SQLite  pantry.db  (WAL)              │ ─────► │        ▼                 │
- │   ├─ forecaster (on write + nightly)       │        │  static host:            │
- │   └─ publisher ──► file | webhook | git    │        │  needs.json + widget.js  │
- │                                            │        │  (GH Pages / Netlify /   │
- │  nightly: sqlite .backup → offsite         │        │   site's own /static)    │
- └────────────────────────────────────────────┘        └──────────────────────────┘
+ volunteers (phone / laptop browser)
+          │  HTTPS  (Railway edge, *.up.railway.app or custom domain)
+          ▼
+ Railway service ── gunicorn ── Django (one replica, because SQLite)
+          │                       │
+          │                       └──► Claude API (photo/text → draft rows)
+          ▼
+ Railway volume /data
+   pantry.sqlite3   (journal_mode=WAL — a local volume, not a network FS)
 ```
 
-- One process, `ThreadingHTTPServer`, bound to localhost. If devices reach it over
-  anything but Tailscale, Caddy sits in front for TLS. The stdlib server is never
-  exposed to the internet directly.
-- Host candidates: a Raspberry Pi at the pantry, the existing NixOS box over
-  Tailscale, or a $5 VPS. **This is open question Q2.** The code is the same
-  either way.
-- Packaging: `nix/pantry.nix` like Neb, plus a plain `python3 -m pantry serve` for
-  anyone without Nix.
-- State lives in `~/.local/share/pantry/` (`pantry.db`, `settings.json` mode 600,
-  `publish/` staging dir).
+- **Setup, done once:**
+  1. Create a Railway project from the GitHub repo.
+  2. Add a volume at `/data`.
+  3. Set the env vars `DJANGO_SECRET_KEY`, `ANTHROPIC_API_KEY`,
+     `ALLOWED_HOSTS` and `DATABASE_PATH=/data/pantry.sqlite3`.
+  4. Deploy, then run `createsuperuser` once from the Railway shell.
+- **Start command:** `python manage.py migrate && gunicorn pantry.wsgi --workers 2`.
+- **Updates:** `git push` to `main` redeploys automatically.
+- **Backups, two layers:**
+  1. Railway volume backups, if the plan offers them.
+  2. An admin-only "Download backup" button that makes a consistent SQLite copy
+     with `sqlite3.Connection.backup`. Someone downloads it weekly; a reminder
+     shows on the dashboard when the last one is more than 7 days old.
+- **Cost:** ~$5/mo for Railway, plus AI usage (§6.4). Set a monthly spend limit
+  in the Anthropic Console.
 
 ---
 
 ## 4. Users and roles
 
-| Role | Can |
-|---|---|
-| `volunteer` | Receive and distribute stock, run counts, view on-hand and needs |
-| `coordinator` | All of the above, plus edit items and categories, set par levels and overrides, approve publishing, run adjustments |
-| `admin` | All of the above, plus users, settings, publisher targets, backups |
+The Django auth system with three groups:
 
-- Each person gets an account: username plus password, or a 6-digit PIN for
-  volunteers on a shared tablet. Passwords are hashed with `hashlib.scrypt`.
-- Sessions use an HttpOnly, SameSite=Strict cookie. A CSRF token goes on every
-  form. Sessions time out after 12 hours.
-- Every ledger row records `user_id`, so "who logged 400 lbs of soup?" has an answer.
+| Group | Can |
+|---|---|
+| `volunteer` | Intake (typed or AI), take out, count, view stock |
+| `coordinator` | + edit items, categories and locations, adjustments and reversals, set par levels, reports |
+| `admin` | + users, settings, backups (the Django superuser) |
+
+Built-in protection covers CSRF, password hashing and login rate limiting (a
+small custom throttle on the login view). Sessions expire after 12 hours.
 
 ---
 
-## 5. Data model
+## 5. Data model (Django models)
 
-### 5.1 Tables
+```python
+Category(name, parent=FK(self, null), expiry_policy, target_weeks=3, sort)
+    # expiry_policy: "hard" (infant formula, baby food) | "soft" (shelf-stable) | "perishable"
 
-```sql
-category(id, parent_id NULL, name, public_label, expiry_policy, target_weeks,
-         sort, hidden_public BOOL)
-  -- two levels in practice: "Protein" > "Canned fish & meat"
-  -- expiry_policy: 'hard' (formula, baby food) | 'soft' (shelf-stable) | 'perishable'
+Location(name)                                  # Shelf A, Walk-in fridge, Freezer, Back room
 
-item(id, category_id, name, unit, weight_lb_per_unit NULL, perishable BOOL,
-     default_shelf_days NULL, par_qty NULL, active BOOL, needs_review BOOL)
-  -- unit: 'each' | 'lb' | 'case' ... ; par_qty is used for cold start (§6.1)
+Item(name unique, category FK, unit,            # unit: each | lb | case | box | bag
+     weight_lb_per_unit null, par_qty null,     # par_qty = minimum to keep on hand
+     shelf_days null, active, aliases text)     # aliases help AI + search ("tuna fish")
 
-barcode(code PRIMARY KEY, item_id, source 'manual'|'off', off_name, added_at)
+Batch(item FK, received_at, expires_on null, location FK, source, qty_received)
+    # one receipt of one item; expiry + FIFO live here
+    # source: donation | food_bank | purchase | food_drive | tefap | other
 
-source(id, name, kind)                 -- kind: donor_public | food_bank | tefap | purchase | drive
-location(id, name)                     -- shelf / fridge / freezer / back room
+Movement(uuid unique, ts, user FK, item FK, batch FK null, kind, qty,   # qty signed
+         reverses FK(self) null, via, note)
+    # kind: receive | out | adjust | spoil | transfer
+    # via:  form | ai_photo | ai_text | count     (so AI accuracy can be audited)
+    # never edited or deleted: admin is read-only for this model
 
-lot(id, item_id, received_at, expires_on NULL, source_id, location_id)
-  -- a receipt of one item; FIFO and expiry work at this level
-
-ledger(id, uuid UNIQUE, ts, user_id, item_id, lot_id NULL, kind, qty,
-       distribution_id NULL, reverses_id NULL, note)
-  -- kind: receive | distribute | adjust | spoil | transfer
-  -- qty signed (+ in, − out). Never UPDATE/DELETE; correct by a reversing row.
-
-distribution(id, day, households, individuals NULL, notes)
-  -- one row per distribution session; the denominator for forecasting
-
-count_session(id, started_at, user_id, closed_at)   -- stock takes; produce 'adjust' rows
-
-override(category_id | item_id, level, note, until NULL)  -- coordinator pins
-setting(key, value)                                       -- small KV; secrets in settings.json
-user(id, username, pass_hash, role, pin_hash NULL, active)
+CountSession(started_at, user FK, closed_at)     # stock-take; diffs → "adjust" rows
+IntakeDraft(id, user FK, created_at, via, rows JSON, status)  # AI output awaiting review
 ```
 
-Migrations are numbered `pantry/migrations/NNN_*.sql`. They run in order on
-startup and are tracked in `PRAGMA user_version`.
-
-### 5.2 Derived views (computed on read, not stored)
-- `on_hand(item)` = Σ ledger.qty for the item.
-- `on_hand(lot)` is used for FIFO suggestions and expiry.
-- `usable(item, horizon)` = on_hand minus lots that would be past a **hard** or
-  **perishable** expiry before they would be used.
-
-### 5.3 Expiry policy
-Date labels are not safety dates, **except infant formula**, which must not be
-given out after its use-by date. So:
-- `hard`: blocked at distribute time when expired, and excluded from `usable`.
-- `soft`: never blocked. A warning shows after a category-specific grace period
-  (default 12 months for canned goods). Dented, bulging or rusted cans are a
-  volunteer judgment call, logged as `spoil`.
-- `perishable`: expiry comes from `received_at + default_shelf_days` when no date
-  is entered.
-- The pantry's own or its food bank's rules may be stricter. Grace periods are
-  configurable for that reason.
-
-### 5.4 Pre-packed boxes (pending Q3)
-If the pantry hands out standard boxes, add `kit(id, name)` and
-`kit_component(kit_id, item_id, qty)`. "Distributed 60 standard boxes" then expands
-into component `distribute` rows. If it is client-choice, skip this.
+- **On-hand** = sum of movements per item, or per batch. These are queryset
+  annotations, fast enough for tens of thousands of rows.
+- **FIFO:** "Out 10 cans tuna" is split across batches with the earliest expiry
+  first by `ledger.allocate_fifo()`, a pure function. The volunteer never picks a
+  batch.
+- **Expiry policy:** date labels are quality dates, **except infant formula**,
+  which must not be given out after its use-by date.
+  - `hard`: expired batches are flagged and blocked from "out".
+  - `soft`: a warning appears after a grace period you set (default 12 months).
+  - `perishable`: expiry is `received_at + shelf_days` when no date is entered.
 
 ---
 
 ## 6. Core flows
 
-1. **Receive.** Scan a barcode.
-   - Known barcode: the item is prefilled. Enter qty and optional expiry, pick a
-     source (sticky for the session), save.
-   - Unknown barcode: look it up in Open Food Facts (cached in `barcode`, see
-     §8). Propose a name and category, the volunteer confirms or picks an existing
-     item. New items are flagged `needs_review` for a coordinator.
-   - No barcode (produce, bulk rice): use a tap grid of the ~30 most common items.
-   - Bulk "unsorted, 40 lbs": record against a placeholder item. It counts toward
-     weight reports and is excluded from forecasts until it is sorted.
-2. **Distribute.** Open a distribution session (date and household count), then
-   either log items out as they leave, or skip that and let the closing stock
-   count produce the outflow. The second is the realistic choice on a busy day.
-   Both write the same ledger kinds, but count-derived rows are tagged so the
-   forecaster knows they are coarser.
-3. **Count.** Walk the shelves and enter counts. The difference from computed
-   on-hand becomes `adjust` rows with a reason.
-4. **Correct.** A mistake is fixed with "undo", which posts a reversing entry. Rows
-   are never edited.
-5. **Review needs.** The coordinator dashboard shows each category's cover and
-   level, the forecasted shortfall, items expiring within 30 days, and what *would*
-   publish. From there the coordinator can pin or override, then hit Publish
-   (or auto-publish runs).
+### 6.1 Typed intake ("Receive" page)
+- One row per item: start typing and it autocompletes (name and aliases), then
+  qty, unit (prefilled), optional expiry, location (remembered for the session).
+  Enter adds a row; "Save all" commits them in one transaction.
+- New item names can be created inline. They get a "needs review" flag for a
+  coordinator.
 
-### 6.1 Forecasting (`pantry/forecast.py`, pure functions over ledger rows)
+### 6.2 AI intake (photo or text)
+1. The volunteer taps **"Photo"**: the phone camera opens via
+   `<input type="file" accept="image/*" capture="environment">`. Or they paste or
+   type text: "2 cases tuna, 40 lb potatoes, a dozen cereal boxes exp 3/27".
+2. The browser shrinks the photo to ≤1568 px on the long edge as a JPEG, using
+   ~40 lines of vanilla JS with a canvas. This cuts upload time and cost.
+3. The server calls Claude (§6.4) with the photo or text, the category list and
+   the item catalog (names and aliases).
+4. Claude returns a list of draft rows. Each row has: the matched existing item
+   or a proposed new name, category, qty, unit, expiry (or `null`), confidence,
+   and a note.
+5. **Review screen:** the same editable table as typed intake, prefilled.
+   - Low-confidence rows and new items are highlighted.
+   - Missing expiries are left blank, never guessed.
+   - Anything that doesn't match an existing item is fuzzy-matched with
+     `difflib` as a second opinion.
+6. Confirm writes `receive` movements tagged `via=ai_photo` or `via=ai_text`.
+   If the AI call fails or times out, the typed form is right there; nothing is
+   blocked.
 
-Weekly buckets per item `i`, week `w`:
+### 6.3 Out, count, correct
+- **Out:** the same typed or AI entry, writing negative `out` movements (FIFO).
+  It can be logged per item, or skipped in favour of a closing **count**: the
+  difference becomes `adjust` rows, tagged so the forecast treats them as rougher.
+- **Count:** walk the shelves by location and enter what's there. The app
+  records the differences with a reason.
+- **Correct:** "Undo" on any movement posts the reverse. Coordinator only.
 
-- `out[i,w]` = units out (distribute + spoil counted separately; spoilage is
-  reported, not demand).
-- `H[w]` = households served (Σ distribution.households).
-- **Censoring:** a week where the item hit zero on hand is a stockout week. It
-  understates demand, so it is excluded from the rate.
-- Rate: `r[i] = EWMA_α( out[i,w] / H[w] )` over uncensored weeks, α = 0.3.
-- Expected households: `Ĥ = EWMA_α(H[w]) × event_multiplier`. The multiplier is
-  set manually for known spikes: Thanksgiving, the start of summer when school
-  meals stop, SNAP disruptions.
-- Weekly demand `D[i] = r[i] × Ĥ`. Cover `C[i] = usable[i] / D[i]` in weeks.
-- **Cold start:** with fewer than 4 uncensored weeks, use the coordinator's
-  `par_qty` instead (`C = usable / par_qty × target_weeks`). The dashboard shows
-  "estimate: low data".
-- **Roll-up for the public list:** sum `usable` and `D` across items in a
-  category, then compute cover. Taking the worst item's level instead would
-  overstate need.
-- Shortfall for the internal list: `max(0, target_weeks × D − usable)`.
+### 6.4 The Claude call (`inventory/ai_intake.py`)
+- **SDK:** `anthropic`, one `client.messages.create(...)` call, not streamed.
+  The output is small.
+- **Model:** `claude-opus-5-5` at `output_config.effort = "low"`, which is enough
+  for extraction. The model is a setting (`PANTRY_AI_MODEL`), so it can be
+  changed without a deploy.
+  - **Your call:** Claude Haiku 5.5 is ~40× cheaper per token. Claude Opus 5.5 is
+    the default because reading crowded, angled shelf photos is where the stronger
+    model earns its cost. Try both on 20 real photos before deciding.
+- **Strict JSON:** use `output_config.format = {"type": "json_schema", "schema": DRAFT_SCHEMA}`.
+  The response is guaranteed to match the schema, so there's no "please return
+  JSON" prompting and no repair step. Use structured outputs rather than forced
+  tool use, which this model rejects.
+- **Refusal handling:** check `stop_reason` before reading the content. Server
+  fallbacks are enabled (`fallbacks: "default"`, beta `server-side-fallback-2026-07-01`)
+  so a rare false-positive decline is retried on another model automatically.
+- **Prompt rules:**
+  - Map to existing catalog items whenever plausible.
+  - Count only what is visible.
+  - Give `null` expiry unless the date is legible.
+  - Give a confidence of `low` when items are stacked or hidden.
+  - Never invent items.
+- **Cost estimate** (to be measured on real photos):
+  - A resized photo is ~2.5k image tokens. Prompt plus catalog is ~1.5k. Output
+    is ~1k.
+  - Opus 5.5 ($4/$20 per M tokens): **~3–4¢ per photo**. Haiku 5.5: **~0.1¢**.
+  - At 30 photos a week that's ~$5/mo or pennies, respectively.
+- **Guardrails:**
+  - Logged-in users only, with a per-user limit (e.g. 60 calls/hour).
+  - 30 s timeout and the SDK's retries.
+  - Model output is only ever rendered into the review form (auto-escaped). It is
+    never executed, and nothing is saved without a human confirm.
 
-### 6.2 Need levels (`pantry/needs.py`)
+### 6.5 Forecast and "we need" list (`inventory/forecast.py`, pure functions)
+- Weekly buckets per item: `out[w]` (`out` plus the count-derived outflow;
+  `spoil` is reported separately, not counted as demand).
+- **Stockout weeks** (on-hand hit 0) are excluded, because they understate demand.
+- Weekly usage `U` = weighted average of recent weeks (α = 0.3) over normal weeks.
+  A manual **season multiplier** covers known spikes (Thanksgiving, summer).
+- Usable stock `S` = on-hand minus `hard`/`perishable` batches that expire before
+  they'd be used. Weeks of cover `C = S / U`.
+- **Cold start:** with fewer than 4 weeks of history, compare against `par_qty`
+  instead.
+- **Levels:** with `T = category.target_weeks`:
 
-With `T = category.target_weeks` (default 3) and lead time `L = 1` week:
+  | Level | Cover |
+  |---|---|
+  | `critical` | C < 1 |
+  | `low` | C < T |
+  | `ok` | C < 3T |
+  | `plenty` | C ≥ 3T |
 
-| Level | Cover |
-|---|---|
-| `critical` | C < L |
-| `low` | L ≤ C < T |
-| `ok` | T ≤ C < 3T |
-| `plenty` | C ≥ 3T, or the storage cap is reached |
+  A level has to clear its threshold by 15% before it moves up, so it doesn't
+  flicker week to week.
+- **"We need" list:** the shortfall `max(0, T × U − S)` per item, grouped by
+  category. It can be printed, copied as text, or exported as CSV (useful for
+  food-bank orders or a food-drive flyer).
 
-- **Hysteresis:** a level only moves up (toward plenty) once it clears the
-  threshold by 15%, so the public list doesn't flip back and forth week to week.
-- **Overrides** beat computed levels until their `until` date. Examples: "always
-  need diapers", "hide this category publicly".
-
-### 6.3 Publishing to the live site (`pantry/publish/`)
-
-**Contract:** `needs.json`, versioned. This is the only thing the website ever sees.
-
-```json
-{
-  "schema": "pantry-needs/1",
-  "pantry": { "name": "Example Community Pantry", "dropoff": "Tue & Thu 4–7pm, side door",
-              "url": "https://example.org/donate" },
-  "generated_at": "2026-10-16T14:00:00Z",
-  "stale_after":  "2026-10-30T14:00:00Z",
-  "needs": [
-    { "key": "canned-protein", "label": "Canned tuna & chicken", "level": "critical",
-      "note": "Pop-top cans preferred" },
-    { "key": "cereal", "label": "Breakfast cereal", "level": "low" }
-  ],
-  "plenty": [ { "key": "pasta", "label": "Pasta", "level": "plenty" } ],
-  "please_dont": [ "Home-canned or opened items", "Expired baby formula" ]
-}
-```
-
-- **No quantities, no donor names, no internal item names** (labels come from
-  `category.public_label`). The builder is a pure function with a test that fails
-  on any field outside an allowlist.
-- **Widget:** the app also publishes `needs-widget.js`, a ~3 KB vanilla script, with
-  no framework or tracking. The website embeds it:
-  ```html
-  <div id="pantry-needs"></div>
-  <script src="https://<host>/needs-widget.js" data-src="https://<host>/needs.json" defer></script>
-  ```
-  It renders the list with an "Updated 2 days ago" line. If `now > stale_after`, it
-  replaces the levels with "Contact us for current needs", so old data never
-  misleads people. It works in WordPress, Squarespace and Wix via an embed block.
-  If cross-origin, the static host needs `Access-Control-Allow-Origin: *`; the
-  data is public anyway.
-- **Adapters** (`publish/{file,webhook,git}.py`, one interface `publish(payload_bytes) -> Result`):
-  - `file` (v1): writes atomically into a directory a web server already serves.
-  - `webhook` (v1): `POST` the JSON with `X-Pantry-Signature: sha256=<HMAC>` and a
-    timestamp header (replay window 5 min). This is the route for a site plugin, Zapier, etc.
-  - `git` (v1.1): commit and push to a GitHub Pages repo via `git` with an argv list.
-- **When it publishes:** on a level change (debounced 10 min), plus a daily
-  heartbeat that refreshes `generated_at` so the widget doesn't go stale on quiet weeks.
-- **Mode:** `review` by default, meaning the coordinator approves a diff ("canned
-  protein: low → critical"). Switch to `auto` once the forecasts have earned trust.
-  Every publish is logged with its payload hash.
-- Secrets (HMAC key, git token) go in `settings.json` (mode 600) with env-var
-  fallbacks, and are masked in the UI.
+### 6.6 Dashboard and reports
+- **Dashboard:** critical and low items, items expiring within 30 days, the last
+  10 movements, and the last-backup reminder.
+- **Reports:**
+  - On-hand by category or location.
+  - In vs out per month in units and lbs.
+  - lbs received by source (what food banks ask for).
+  - Spoilage.
+  - AI vs typed entries and how often AI drafts were edited before confirm, a
+    built-in accuracy check.
+- **CSV export** on every admin list, so the pantry is never locked in.
 
 ---
 
-## 7. Offline (v2, designed now)
-
-Church-basement Wi-Fi is a real risk. The plan:
-- A service worker caches the receive/distribute pages and the item and barcode list.
-- Entries queue in IndexedDB with their UUID and sync with `POST /api/ledger/batch`.
-  The server ignores UUIDs it has already seen (D8), so replay is safe.
-- Conflicts can't happen because the ledger is append-only. The worst case is
-  on-hand going negative briefly, which shows as a count prompt.
-- The v1 fallback is a printable tally sheet plus CSV import.
-
----
-
-## 8. External integrations
-
-- **Open Food Facts** for UPC → name and category hints.
-  - Limit is **15 product reads per minute per IP**. Requests must send a custom
-    `User-Agent` identifying the app. The data is **ODbL**, so a credit line goes
-    in the footer.
-  - Every hit is cached forever in `barcode`, and the client is rate limited.
-    Lookup is optional: if it is offline or rate limited, the volunteer types a name.
-- Everything else is outbound only (publisher). There are no inbound integrations in v1.
-
----
-
-## 9. Security and privacy
-
-- No client PII (§1). The most sensitive data is volunteer usernames and donor/source names.
-- The admin app stays off the public internet (D4). If it is exposed, use Caddy
-  for TLS and add login rate limiting with a lockout.
-- The public payload is allowlisted and tested (§6.3).
-- No user input reaches a shell. `git` runs with an argv list.
-- **Backups:** nightly `sqlite3 .backup` (via `sqlite3.Connection.backup`), 30 kept,
-  copied offsite. **CSV export** of every table, so the pantry is never locked in.
-
----
-
-## 10. Code layout
+## 7. Code layout
 
 ```
-pantry/
-  __main__.py        # CLI: serve | publish [--dry-run] | backup | import-csv | create-user
-  config.py          # paths, settings.json, SECRETS list, env fallbacks
-  db.py              # connection (WAL, foreign_keys=ON), migrations runner
-  migrations/001_init.sql
-  ledger.py          # receive/distribute/adjust/reverse — pure-ish, takes a conn
-  inventory.py       # on_hand, usable, expiring — read-side queries
-  forecast.py        # pure: rows -> rates, cover   (no I/O)
-  needs.py           # pure: cover -> levels (+hysteresis, overrides) -> payload
-  publish/__init__.py, file.py, webhook.py, git.py
-  lookup.py          # Open Food Facts client + cache + rate limiter
-  auth.py            # scrypt, sessions, CSRF, roles
-  web/
-    server.py        # ThreadingHTTPServer, routing
-    views.py         # handlers -> string.Template HTML
-    templates/*.html
-    static/app.js, app.css, needs-widget.js
-tests/               # unittest; fake clock, in-memory SQLite, fake OFF + webhook servers
-nix/pantry.nix
+manage.py
+requirements.txt          # django==5.2.*, gunicorn, whitenoise, anthropic (pinned)
+railway.json              # start command, healthcheck path
+pantry/                   # project: settings.py (env-driven), urls.py, wsgi.py
+inventory/
+  models.py               # §5
+  admin.py                # catalog/location/user admin; Movement read-only + "undo" action; CSV export
+  ledger.py               # receive / take_out / adjust / reverse / allocate_fifo — the only writers of Movement
+  forecast.py             # pure: movements → usage, cover, levels, shortfall (no DB, no I/O)
+  ai_intake.py            # Claude call, DRAFT_SCHEMA, prompt, difflib matching
+  views.py                # receive, take_out, ai_intake, review, count, dashboard, needs, backup
+  templates/inventory/*.html
+  static/inventory/intake.js   # row entry + autocomplete + photo resize
+  tests/                  # Django TestCase; fake Claude client; no network
 ```
 
-`forecast.py` and `needs.py` stay free of I/O so their maths can be tested
-directly with hand-built ledgers.
+Rules: only `ledger.py` writes `Movement`. `forecast.py` stays pure so it can be
+tested with hand-built histories. Tests never hit the network.
 
 ---
 
-## 11. Milestones
+## 8. Milestones
 
 | M | Scope | Done when |
 |---|---|---|
-| M0 | Schema, migrations, ledger, on-hand, CLI `create-user` | Ledger tests pass, including reversal and idempotent UUIDs |
-| M1 | Web UI: login, items/categories, receive (scan + tap grid), distribute session, counts, on-hand, expiring, CSV export, backups, OFF lookup | A volunteer can run a full distribution day |
-| M2 | Forecast + needs dashboard + overrides | Levels match hand-calculated fixtures; cold start handled |
-| M3 | `needs.json` builder, widget, `file` + `webhook` publishers, review mode | Widget renders on a test page; stale handling verified |
-| M4 | Kits (if Q3), `git` publisher, reports (lbs by source per month), offline queue | — |
+| M0 | Project skeleton, models, admin, `ledger.py`, tests, **deployed to Railway** | Admin login works on the live URL; ledger tests pass (FIFO, reversal, idempotent UUIDs) |
+| M1 | Receive/out typed pages, count, dashboard, backup button | A volunteer can run a full day by typing |
+| M2 | AI intake (photo + text) with review screen | 20 real photos → drafts reviewed in under a minute each |
+| M3 | Forecast, "we need" list, reports, CSV | Levels match hand-calculated fixtures |
+| Later | Public needs page (§10), Postgres if outgrown | — |
 
 ---
 
-## 12. Open questions
+## 9. Risks and edge cases
 
-1. **Is there a specific pantry?** How many volunteers, what devices (phones,
-   shared tablet, laptop), and is there reliable Wi-Fi on site? This decides
-   whether offline moves from v2 to v1.
-2. **Where does it run?** A Pi at the pantry, the NixOS box over Tailscale, or a VPS.
-3. **Client-choice or pre-packed boxes?** This decides whether kits (§5.4) are in M1.
-4. **Existing website and platform?** WordPress, Squarespace or none. This decides
-   which publisher adapter to build first.
-5. **Reporting obligations?** Is the pantry a food-bank partner agency or a TEFAP
-   site? That makes tracking source/program and pounds a must-have and fixes the
-   report formats.
-6. **Confirm: no client records in v1.**
+- **AI miscounts.** The review step (D6) catches them. Track the edit rate (§6.6).
+- **Unreadable expiry dates.** Leave them null, and nag on `hard` categories,
+  where a date is required before saving.
+- **Mixed donation boxes.** Use one photo per sorted pile, not the whole unsorted
+  box. The UI says so.
+- **Units drift** ("case" vs "each"). Each item has one unit. AI output in another
+  unit is flagged on the review screen and never silently converted.
+- **SQLite on one replica.** Fine for a pantry. Never scale Railway past one
+  instance while on SQLite.
+- **Railway outage or price change.** It's a standard Django app, so it moves to
+  Fly.io, Render or a VPS unchanged (env vars plus a volume).
+
+---
+
+## 10. Parked: public "what to bring" page
+If it's wanted later: one read-only `/needs/` view that renders the critical and
+low categories (labels only, no quantities) plus a `needs.json`. It's a single
+view on the same app, because the app is online now. The push/widget design from
+v1 isn't needed.
+
+---
+
+## 11. Open questions
+
+1. **Railway at ~$5/mo with a card on file: OK?** (Free hosts either block the
+   Claude API or lose the SQLite file.)
+2. **AI model:** Claude Opus 5.5 by default (~3–4¢/photo), or Claude Haiku 5.5
+   (~0.1¢)? I'd test both on real photos first.
+3. **Whose Anthropic account and API key?** The pantry's own is best, with a spend limit.
+4. **Confirm the public needs page is parked**, not dropped forever.

@@ -1,11 +1,13 @@
 # Pantry — notes for coding agents
 
 - Design and decisions: `DESIGN.md` (read §2 first). Running log: `NOTES.md`.
-- Runtime is **stdlib-only** Python 3 + SQLite. Don't add dependencies without a strong reason.
-- The `ledger` table is append-only. Never UPDATE/DELETE rows; correct with a reversing entry.
-- `forecast.py` and `needs.py` stay pure (no I/O) so they can be tested with hand-built ledgers.
-- The public payload (`needs.json`) is allowlisted; never add quantities, donor names or PII.
-- No client/household PII anywhere in v1.
-- Never pass user input to a shell; use an argv list.
-- Secrets live in `settings.json` (mode 600) with env fallbacks, masked in the UI.
-- Tests: `python3 -m unittest discover -s tests -t .` (no network).
+- Stack: Django 5.2 LTS + SQLite, deployed on Railway. Dependencies are only
+  `django`, `gunicorn`, `whitenoise`, `anthropic` (pinned). Don't add more without a strong reason.
+- Only `inventory/ledger.py` writes `Movement`. It is append-only: never UPDATE/DELETE,
+  correct with a reversing entry.
+- AI intake produces drafts only. Nothing reaches the ledger without a human confirm.
+- Model output is rendered into auto-escaped forms only; never executed, never passed to a shell.
+- `forecast.py` stays pure (no DB, no I/O).
+- No client/household data anywhere.
+- Secrets come from env vars (`DJANGO_SECRET_KEY`, `ANTHROPIC_API_KEY`); never commit them.
+- Tests: `python manage.py test` (no network; use the fake Claude client).
