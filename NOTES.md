@@ -8,6 +8,12 @@
 
 <!-- MEMORY_UPDATE_START -->
 ### Update: 2026-10-16 (v2 redesign)
-* **Decisions/Changes**: Scope cut to back-office warehouse tracking: no barcodes, no client data, public needs page parked. Stdlib-only dropped for Django 5.2 LTS + SQLite (now internet-facing, so built-in auth, CSRF and admin are worth it). Deps: django, gunicorn, whitenoise, anthropic. Hosting: Railway Hobby with a /data volume and git-push deploys. PythonAnywhere is ruled out (free tier blocks the Claude API, 1-month expiry, SQLite unreliable on its network FS). Entry is typed with autocomplete, or AI from a photo or text (claude-opus-5-5, effort low, json_schema structured output, server fallbacks) feeding a mandatory human review screen. Photos are resized in the browser and not stored. Forecast is time-based (weekly usage EWMA, stockout weeks excluded), with batches + FIFO for expiry.
+* **Decisions/Changes**: Scope cut to back-office warehouse tracking: no barcodes, no client data, public needs page parked. Stdlib-only dropped for Django 5.2 LTS + SQLite (now internet-facing, so built-in auth, CSRF and admin are worth it). Deps: django, gunicorn, whitenoise, anthropic. Hosting: Railway Hobby with a /data volume and git-push deploys. PythonAnywhere is ruled out (free tier blocks the Claude API, 1-month expiry, SQLite unreliable on its network FS). Entry is typed with autocomplete, or AI from a photo or text (claude-opus-5-5 at first, now claude-haiku-5-5; effort low, json_schema structured output) feeding a mandatory human review screen. Photos are resized in the browser and not stored. Forecast is time-based (weekly usage EWMA, stockout weeks excluded), with batches + FIFO for expiry.
 * **Known Bugs/Gaps**: No code yet. Open: Railway cost OK? Opus vs Haiku (test on ~20 real photos)? Whose API key? Railway volume backup availability unverified. Add an in-app backup download.
+<!-- MEMORY_UPDATE_END -->
+
+<!-- MEMORY_UPDATE_START -->
+### Update: 2026-10-16 (stack confirmed)
+* **Decisions/Changes**: Railway approved. AI model is claude-haiku-5-5 (cheap tier) at effort low, with no server-side fallback (refusals go to manual entry). Public page parked. Confirmed stack is in DESIGN.md §11: Python 3.12, Django 5.2 LTS, SQLite on a Railway volume, gunicorn, whitenoise, vanilla JS, anthropic SDK.
+* **Known Bugs/Gaps**: Whose Anthropic account holds the API key is still open. No code yet; next is M0 (skeleton, models, admin, ledger, Railway deploy).
 <!-- MEMORY_UPDATE_END -->

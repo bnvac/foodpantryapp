@@ -5,7 +5,7 @@
   `django`, `gunicorn`, `whitenoise`, `anthropic` (pinned). Don't add more without a strong reason.
 - Only `inventory/ledger.py` writes `Movement`. It is append-only: never UPDATE/DELETE,
   correct with a reversing entry.
-- AI intake produces drafts only. Nothing reaches the ledger without a human confirm.
+- AI intake uses `claude-haiku-5-5` (setting `PANTRY_AI_MODEL`) and produces drafts only. Nothing reaches the ledger without a human confirm.
 - Model output is rendered into auto-escaped forms only; never executed, never passed to a shell.
 - `forecast.py` stays pure (no DB, no I/O).
 - No client/household data anywhere.

@@ -173,19 +173,15 @@ IntakeDraft(id, user FK, created_at, via, rows JSON, status)  # AI output awaiti
 ### 6.4 The Claude call (`inventory/ai_intake.py`)
 - **SDK:** `anthropic`, one `client.messages.create(...)` call, not streamed.
   The output is small.
-- **Model:** `claude-opus-5-5` at `output_config.effort = "low"`, which is enough
-  for extraction. The model is a setting (`PANTRY_AI_MODEL`), so it can be
-  changed without a deploy.
-  - **Your call:** Claude Haiku 5.5 is ~40× cheaper per token. Claude Opus 5.5 is
-    the default because reading crowded, angled shelf photos is where the stronger
-    model earns its cost. Try both on 20 real photos before deciding.
+- **Model (decided): `claude-haiku-5-5`**, the cheap tier, at `output_config.effort = "low"`.
+  The model is a setting (`PANTRY_AI_MODEL`), so a stronger model can be swapped
+  in without a deploy if review-screen edit rates (§6.6) show it misreads photos.
 - **Strict JSON:** use `output_config.format = {"type": "json_schema", "schema": DRAFT_SCHEMA}`.
   The response is guaranteed to match the schema, so there's no "please return
-  JSON" prompting and no repair step. Use structured outputs rather than forced
-  tool use, which this model rejects.
-- **Refusal handling:** check `stop_reason` before reading the content. Server
-  fallbacks are enabled (`fallbacks: "default"`, beta `server-side-fallback-2026-07-01`)
-  so a rare false-positive decline is retried on another model automatically.
+  JSON" prompting and no repair step.
+- **Refusal handling:** check `stop_reason` before reading the content. Haiku has
+  no server-side fallback, so on a `refusal` or any error the review screen just
+  opens empty for typing.
 - **Prompt rules:**
   - Map to existing catalog items whenever plausible.
   - Count only what is visible.
@@ -195,8 +191,7 @@ IntakeDraft(id, user FK, created_at, via, rows JSON, status)  # AI output awaiti
 - **Cost estimate** (to be measured on real photos):
   - A resized photo is ~2.5k image tokens. Prompt plus catalog is ~1.5k. Output
     is ~1k.
-  - Opus 5.5 ($4/$20 per M tokens): **~3–4¢ per photo**. Haiku 5.5: **~0.1¢**.
-  - At 30 photos a week that's ~$5/mo or pennies, respectively.
+  - Haiku 5.5 ($0.10/$0.50 per M tokens): **~0.1¢ per photo**, so cents per month.
 - **Guardrails:**
   - Logged-in users only, with a per-user limit (e.g. 60 calls/hour).
   - 30 s timeout and the SDK's retries.
@@ -302,11 +297,22 @@ v1 isn't needed.
 
 ---
 
-## 11. Open questions
+## 11. Confirmed tech stack
 
-1. **Railway at ~$5/mo with a card on file: OK?** (Free hosts either block the
-   Claude API or lose the SQLite file.)
-2. **AI model:** Claude Opus 5.5 by default (~3–4¢/photo), or Claude Haiku 5.5
-   (~0.1¢)? I'd test both on real photos first.
-3. **Whose Anthropic account and API key?** The pantry's own is best, with a spend limit.
-4. **Confirm the public needs page is parked**, not dropped forever.
+| Layer | Choice |
+|---|---|
+| Language | Python 3.12 |
+| Web framework | Django 5.2 LTS (admin, auth, CSRF, migrations) |
+| Database | SQLite on a Railway volume (`/data/pantry.sqlite3`, WAL) |
+| App server | gunicorn, 2 workers |
+| Static files | whitenoise (served by the app, no CDN) |
+| Front end | Django templates + one vanilla JS file (autocomplete, photo resize); no build step |
+| AI | `anthropic` Python SDK → `claude-haiku-5-5`, structured JSON output |
+| Hosting | Railway Hobby (~$5/mo), auto-deploy from GitHub `main`, HTTPS included |
+| Secrets | Railway env vars: `DJANGO_SECRET_KEY`, `ANTHROPIC_API_KEY`, `ALLOWED_HOSTS`, `DATABASE_PATH` |
+| Backups | Railway volume backups (if available) + admin "Download backup" |
+| Tests | Django test runner, fake Claude client, no network |
+
+**Decided (2026-10-16):** Railway OK; cheap model (Haiku 5.5); public page parked.
+**Still open:** whose Anthropic account holds the API key (the pantry's own is
+best, with a monthly spend limit).
