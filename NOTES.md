@@ -18,7 +18,7 @@
 * **Known Bugs/Gaps**: Whose Anthropic account holds the API key is still open. No code yet; next is M0 (skeleton, models, admin, ledger, Railway deploy).
 <!-- MEMORY_UPDATE_END -->
 
-## 2026-10-30 — browser prototype
+## 2026-10-30 — browser prototype (Smart Shelf)
 
 - `prototype/index.html`: a single-file, no-backend demo of the stockroom for the
   portfolio. Editable sheet, typed + paste-a-list intake with review, append-only
@@ -29,3 +29,6 @@
 - Not the production app. Deliberate gaps vs DESIGN.md: no auth, no Claude call
   (paste parser is regex + word match), no 15% level hysteresis, a "case" is
   assumed to be 12 units. The Django build (M0–M3) is still to do.
+- Renamed to **Smart Shelf** for the public pages. "How it works" replaced with
+  worked examples (distribution day, truck unload, food-bank order, food drive,
+  Thanksgiving multiplier, formula use-by) and who it's for.
