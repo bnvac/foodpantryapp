@@ -32,3 +32,7 @@
 - Renamed to **Smart Shelf** for the public pages. "How it works" replaced with
   worked examples (distribution day, truck unload, food-bank order, food drive,
   Thanksgiving multiplier, formula use-by) and who it's for.
+- Rebuilt the prototype as an app: Today, Give out (tap tiles, one Log button),
+  Receive (rows + paste-to-fill), Count by shelf, Shelf with −/+ steppers,
+  Forecast in sentences, Website publish, Import/export. Item drawer edits
+  fields and shows history; every action can be undone by a reversing entry.

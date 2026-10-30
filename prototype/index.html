@@ -9,706 +9,616 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Young+Serif&family=Figtree:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
 <style>
-/* Layout: public "what we need" board on top (what the website shows), the volunteer stockroom app below it. */
+/* Layout: product hero, then the working app in a window (sidebar + view), then the public list it publishes, then uses. Forest green accent, kraft secondary, semantic levels. */
 :root{
-  --bg:#f6f7f4; --surface:#ffffff; --fg:#17201b; --muted:#5f6b63; --line:#dfe4dd; --soft:#eef1ec;
-  --accent:#2f6b4f; --accent-fg:#ffffff; --kraft:#c9a46a;
-  --crit:#c2412d; --low:#c98a12; --ok:#3d7f5f; --plenty:#6c8fb3;
+  --bg:#f5f6f2; --surface:#ffffff; --fg:#17201b; --muted:#5f6b63; --line:#dfe4dd; --soft:#eef1ec;
+  --accent:#2f6b4f; --accent-fg:#ffffff; --kraft:#b98d4f;
+  --crit:#c2412d; --low:#b87c0c; --ok:#3d7f5f; --plenty:#4f7aa6;
   --crit-bg:#fbe9e5; --low-bg:#fbf1dc; --ok-bg:#e5f1ea; --plenty-bg:#e7eef6;
   --display:"Young Serif", Georgia, serif; --body:"Figtree", system-ui, sans-serif; --mono:"IBM Plex Mono", ui-monospace, monospace;
   color-scheme:light;
 }
 @media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
-  --bg:#0f1411; --surface:#161c18; --fg:#e6ebe6; --muted:#93a097; --line:#26302a; --soft:#1b231e;
-  --accent:#7cc19d; --accent-fg:#0f1411; --kraft:#d7b57d;
+  --bg:#0e1310; --surface:#151b17; --fg:#e6ebe6; --muted:#93a097; --line:#26302a; --soft:#1b231e;
+  --accent:#7cc19d; --accent-fg:#0e1310; --kraft:#d7b57d;
   --crit:#ff8a75; --low:#f2b84b; --ok:#7cc19d; --plenty:#9dbbe0;
   --crit-bg:#3a1d17; --low-bg:#352a12; --ok-bg:#183024; --plenty-bg:#1a2633; color-scheme:dark}}
 :root[data-theme="dark"]{
-  --bg:#0f1411; --surface:#161c18; --fg:#e6ebe6; --muted:#93a097; --line:#26302a; --soft:#1b231e;
-  --accent:#7cc19d; --accent-fg:#0f1411; --kraft:#d7b57d;
+  --bg:#0e1310; --surface:#151b17; --fg:#e6ebe6; --muted:#93a097; --line:#26302a; --soft:#1b231e;
+  --accent:#7cc19d; --accent-fg:#0e1310; --kraft:#d7b57d;
   --crit:#ff8a75; --low:#f2b84b; --ok:#7cc19d; --plenty:#9dbbe0;
   --crit-bg:#3a1d17; --low-bg:#352a12; --ok-bg:#183024; --plenty-bg:#1a2633; color-scheme:dark}
 
 *{box-sizing:border-box}
-html{padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
-body{margin:0;background:var(--bg);color:var(--fg);font-family:var(--body);font-size:15px;line-height:1.5}
+[hidden]{display:none!important}
+html,body{margin:0}
+body{background:var(--bg);color:var(--fg);font-family:var(--body);font-size:15px;line-height:1.5;padding-bottom:env(safe-area-inset-bottom,0px)}
 .band{padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
-.in{max-width:1120px;margin:0 auto}
+.in{max-width:1180px;margin:0 auto}
 a{color:inherit}
 button,input,select,textarea{font:inherit;color:inherit}
 :focus-visible{outline:2px solid var(--accent);outline-offset:2px}
 .num{font-variant-numeric:tabular-nums}
+.mono{font-family:var(--mono)}
 
-/* top bar */
-.top{border-bottom:1px solid var(--line);background:var(--bg)}
+/* header + hero */
 .top .in{display:flex;align-items:center;gap:20px;padding-block:14px;flex-wrap:wrap}
-.logo{font-family:var(--display);font-size:22px;text-decoration:none;display:flex;align-items:center;gap:10px}
+.logo{font-family:var(--display);font-size:21px;display:flex;align-items:center;gap:10px}
 .logo i{width:26px;height:26px;border-radius:7px;background:var(--accent);display:grid;place-items:center}
-.logo i::after{content:"";width:10px;height:12px;border:2px solid var(--accent-fg);border-top-width:4px;border-radius:2px}
+.logo i::after{content:"";width:12px;height:10px;border:2px solid var(--accent-fg);border-top:0;box-shadow:inset 0 -3px 0 var(--accent-fg)}
 .top nav{display:flex;gap:18px;margin-left:auto;font-size:14px;flex-wrap:wrap}
-.top nav a{text-decoration:none;color:var(--muted)}
-.top nav a:hover{color:var(--fg)}
+.top nav a{text-decoration:none;color:var(--muted)}.top nav a:hover{color:var(--fg)}
+.hero .in{padding-block:46px 30px;display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:40px;align-items:center}
+.eyebrow{font-family:var(--mono);font-size:12px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted)}
+.hero h1{font-family:var(--display);font-weight:400;font-size:clamp(2.4rem,5.4vw,3.9rem);line-height:1.03;margin:12px 0 16px;text-wrap:balance}
+.hero p{color:var(--muted);max-width:46ch;margin:0 0 22px;font-size:17px}
+.btn{border:1px solid var(--line);background:var(--surface);border-radius:10px;padding:9px 15px;cursor:pointer;font-weight:600;font-size:14.5px;text-decoration:none;display:inline-flex;align-items:center;gap:6px}
+.btn:hover{border-color:var(--muted)}
+.btn.primary{background:var(--accent);color:var(--accent-fg);border-color:var(--accent)}
+.btn.primary:hover{filter:brightness(1.08)}
+.btn.small{padding:5px 10px;font-size:13px;border-radius:8px}
+.btn.ghost{background:transparent;border-color:transparent;color:var(--muted)}
+.btn.ghost:hover{color:var(--fg);border-color:var(--line)}
+.btn.big{padding:12px 18px;font-size:16px}
+.row{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
+.shots{position:relative;min-height:320px}
+.shots img{display:block;border-radius:14px;border:1px solid var(--line);box-shadow:0 30px 80px -30px rgba(0,0,0,.45);max-width:100%;height:auto}
+.shots .desk{width:100%}
+.shots .phone{position:absolute;right:-6px;bottom:-26px;width:31%;border-radius:22px;border:6px solid #111}
+
+/* app window */
+.appsec .in{padding-block:40px 30px}
+.sechead{display:flex;justify-content:space-between;align-items:end;gap:14px;flex-wrap:wrap;margin-bottom:16px}
+.sechead h2{font-family:var(--display);font-weight:400;font-size:clamp(1.7rem,3.2vw,2.3rem);margin:4px 0 0}
+.sechead p{margin:4px 0 0;color:var(--muted);max-width:62ch}
+.app{display:grid;grid-template-columns:210px minmax(0,1fr);background:var(--surface);border:1px solid var(--line);border-radius:16px;overflow:hidden;min-height:640px;box-shadow:0 20px 60px -40px rgba(0,0,0,.4)}
+.side{background:var(--soft);border-right:1px solid var(--line);padding:14px 10px;display:flex;flex-direction:column;gap:2px}
+.side .who{font-size:12.5px;color:var(--muted);padding:6px 10px 12px}
+.side .who b{display:block;color:var(--fg);font-size:14px}
+.nav-b{all:unset;cursor:pointer;display:flex;align-items:center;gap:10px;padding:9px 10px;border-radius:9px;font-weight:500;color:var(--muted)}
+.nav-b svg{width:18px;height:18px;flex:none;stroke:currentColor;fill:none;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
+.nav-b:hover{background:var(--surface);color:var(--fg)}
+.nav-b[aria-current="page"]{background:var(--surface);color:var(--fg);box-shadow:0 0 0 1px var(--line)}
+.nav-b .badge{margin-left:auto;font-size:11.5px;font-weight:700;background:var(--crit);color:#fff;border-radius:999px;padding:0 7px}
+.nav-b:focus-visible{outline:2px solid var(--accent)}
+.side .sp{flex:1}
+.view{padding:22px 24px 28px;min-width:0}
+.view h3{font-family:var(--display);font-weight:400;font-size:24px;margin:0 0 4px}
+.view .hint{color:var(--muted);margin:0 0 18px;font-size:14px}
+
+.actions{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px;margin-bottom:22px}
+.action{all:unset;cursor:pointer;border:1px solid var(--line);border-radius:14px;padding:16px;display:grid;gap:4px;background:var(--bg)}
+.action:hover{border-color:var(--accent)}
+.action:focus-visible{outline:2px solid var(--accent)}
+.action b{font-size:16.5px}
+.action span{font-size:13.5px;color:var(--muted)}
+.action i{font-style:normal;font-size:22px;width:38px;height:38px;border-radius:10px;display:grid;place-items:center;background:var(--soft);margin-bottom:6px}
+.two{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:18px}
+.card{border:1px solid var(--line);border-radius:12px;padding:14px 16px;min-width:0}
+.card h4{margin:0 0 10px;font-size:14px;display:flex;justify-content:space-between;gap:8px}
+.card h4 small{font-weight:500;color:var(--muted)}
+.list{list-style:none;margin:0;padding:0}
+.list li{display:grid;grid-template-columns:auto minmax(0,1fr) auto;gap:10px;align-items:center;padding:9px 0;border-top:1px solid var(--line)}
+.list li:first-child{border-top:0}
+.list .t{font-weight:600;font-size:14.5px}
+.list .s{font-size:13px;color:var(--muted)}
+.pill{display:inline-block;font-size:11.5px;font-weight:700;padding:2px 9px;border-radius:999px;white-space:nowrap}
+.pill.critical{background:var(--crit-bg);color:var(--crit)}.pill.low{background:var(--low-bg);color:var(--low)}
+.pill.ok{background:var(--ok-bg);color:var(--ok)}.pill.plenty{background:var(--plenty-bg);color:var(--plenty)}.pill.new{background:var(--soft);color:var(--muted)}
+.dot{width:9px;height:9px;border-radius:50%}
+.dot.critical{background:var(--crit)}.dot.low{background:var(--low)}.dot.ok{background:var(--ok)}.dot.plenty{background:var(--plenty)}.dot.new{background:var(--muted)}
+
+.tools{display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin-bottom:14px}
+.tools .grow{flex:1}
+input.search,select.sel,.field input,.field select,textarea{border:1px solid var(--line);background:var(--bg);border-radius:9px;padding:8px 11px;min-width:0}
+input.search{width:260px;max-width:100%}
+.chips{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:14px}
+.chip{all:unset;cursor:pointer;font-size:13px;padding:4px 11px;border-radius:999px;border:1px solid var(--line);color:var(--muted)}
+.chip[aria-pressed="true"]{background:var(--fg);color:var(--bg);border-color:var(--fg)}
+.chip:focus-visible{outline:2px solid var(--accent)}
+.shelf{list-style:none;margin:0;padding:0;border:1px solid var(--line);border-radius:12px;overflow:hidden}
+.shelf li{display:grid;grid-template-columns:minmax(0,1fr) auto auto;gap:14px;align-items:center;padding:10px 14px;border-top:1px solid var(--line)}
+.shelf li:first-child{border-top:0}
+.shelf li:hover{background:var(--soft)}
+.open{all:unset;cursor:pointer;display:grid;gap:1px;min-width:0}
+.open:focus-visible{outline:2px solid var(--accent)}
+.open b{font-size:15px;display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+.open span{font-size:13px;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.step{display:flex;align-items:center;border:1px solid var(--line);border-radius:10px;overflow:hidden;background:var(--bg)}
+.step button{all:unset;cursor:pointer;width:36px;height:36px;display:grid;place-items:center;font-size:18px;color:var(--muted)}
+.step button:hover{background:var(--soft);color:var(--fg)}
+.step button:focus-visible{outline:2px solid var(--accent);outline-offset:-2px}
+.step .q{min-width:64px;text-align:center;font-weight:700;font-size:15px}
+.step .q small{display:block;font-weight:500;font-size:11px;color:var(--muted);line-height:1}
+.exp{font-size:12.5px;color:var(--muted);text-align:right;min-width:80px}
+.exp.soon{color:var(--crit);font-weight:600}
+
+.tiles{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:10px}
+.tile{all:unset;cursor:pointer;border:1px solid var(--line);border-radius:12px;padding:12px;background:var(--bg);display:grid;gap:2px;position:relative;min-height:62px;user-select:none}
+.tile:hover{border-color:var(--accent)}
+.tile:focus-visible{outline:2px solid var(--accent)}
+.tile b{font-size:14.5px;padding-right:30px}
+.tile span{font-size:12.5px;color:var(--muted)}
+.tile .n{position:absolute;top:10px;right:10px;min-width:26px;height:26px;border-radius:999px;background:var(--accent);color:var(--accent-fg);font-weight:700;font-size:13px;display:grid;place-items:center;padding:0 6px}
+.tile.picked{border-color:var(--accent);background:var(--soft)}
+.dock{position:sticky;bottom:0;margin-top:16px;background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:10px 12px;display:flex;gap:10px;align-items:center;flex-wrap:wrap;box-shadow:0 -10px 30px -20px rgba(0,0,0,.4)}
+.dock .grow{flex:1;font-size:14px;color:var(--muted)}
+.dock .grow b{color:var(--fg)}
+
+.rows{display:grid;gap:8px}
+.rrow{display:grid;grid-template-columns:minmax(0,2.2fr) 100px minmax(0,1.2fr) 36px;gap:8px;align-items:center}
+.rrow input{width:100%;border:1px solid var(--line);background:var(--bg);border-radius:9px;padding:8px 10px;min-width:0}
+.rrow .x{all:unset;cursor:pointer;width:36px;height:36px;display:grid;place-items:center;color:var(--muted);border-radius:8px}
+.rrow .x:hover{background:var(--soft)}
+.rrow.head{font-size:12px;color:var(--muted);font-weight:600}
+.rrow .flag{grid-column:1/-1;font-size:12.5px;color:var(--low);margin-top:-4px}
+.unit{font-size:12px;color:var(--muted)}
+details.paste{margin-top:16px;border:1px dashed var(--line);border-radius:12px;padding:12px 14px}
+details.paste summary{cursor:pointer;font-weight:600}
+textarea{width:100%;font-family:var(--mono);font-size:13px;resize:vertical}
+
+.count li{grid-template-columns:minmax(0,1fr) 110px 110px}
+.count input{width:100%;border:1px solid var(--line);background:var(--bg);border-radius:9px;padding:7px 10px;text-align:right}
+.diff{font-size:13px;text-align:right}
+.diff.neg{color:var(--crit)}.diff.pos{color:var(--ok)}
+
+.fc{list-style:none;margin:0;padding:0;display:grid;gap:8px}
+.fc li{all:unset;display:grid;grid-template-columns:10px minmax(0,1fr) 110px auto;gap:14px;align-items:center;padding:12px 14px;border:1px solid var(--line);border-radius:12px;cursor:pointer}
+.fc li:hover,.fc li[aria-selected="true"]{border-color:var(--accent);background:var(--soft)}
+.fc li:focus-visible{outline:2px solid var(--accent)}
+.fc .say{font-size:14.5px}
+.fc .say b{font-weight:700}
+.fc .say span{display:block;font-size:13px;color:var(--muted)}
+.settings{display:flex;gap:16px;flex-wrap:wrap;align-items:center;font-size:13.5px;color:var(--muted);margin-bottom:14px}
+.settings label{display:flex;align-items:center;gap:6px}
+.settings input{width:70px;border:1px solid var(--line);background:var(--bg);border-radius:8px;padding:5px 8px}
+.chart text{fill:var(--muted);font-family:var(--mono);font-size:9px}
+
+/* drawer */
+.scrim{position:fixed;inset:0;background:rgba(0,0,0,.35);z-index:20;display:flex;justify-content:flex-end}
+.drawer{width:min(440px,100%);height:100%;background:var(--surface);border-left:1px solid var(--line);overflow:auto;padding:20px 22px calc(28px + env(safe-area-inset-bottom,0px));box-shadow:-20px 0 60px -30px rgba(0,0,0,.5)}
+.drawer h3{font-family:var(--display);font-weight:400;font-size:24px;margin:0}
+.dhead{display:flex;justify-content:space-between;gap:10px;align-items:start;margin-bottom:12px}
+.fields{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin:14px 0}
+.field{display:grid;gap:4px;font-size:12.5px;color:var(--muted)}
+.field.full{grid-column:1/-1}
+.field input,.field select{width:100%;color:var(--fg)}
+.hist{list-style:none;margin:0;padding:0;font-size:13.5px}
+.hist li{display:grid;grid-template-columns:62px minmax(0,1fr) auto auto;gap:8px;align-items:center;padding:7px 0;border-top:1px solid var(--line)}
+.hist .k{font-family:var(--mono);font-size:11.5px;color:var(--muted)}
+.hist .rev{text-decoration:line-through;color:var(--muted)}
+.sub{font-size:12.5px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--muted);margin:18px 0 6px}
 
 /* public board */
-.hero .in{padding-block:56px 40px;display:grid;grid-template-columns:minmax(0,5fr) minmax(0,7fr);gap:48px;align-items:start}
-.eyebrow{font-family:var(--mono);font-size:12px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted)}
-.hero h1{font-family:var(--display);font-weight:400;font-size:clamp(2.3rem,5vw,3.6rem);line-height:1.04;margin:14px 0 16px;text-wrap:balance}
-.hero p{color:var(--muted);max-width:44ch;margin:0 0 18px}
-.dropoff{display:grid;gap:4px;font-size:14px;border-left:3px solid var(--kraft);padding:4px 0 4px 14px}
-.dropoff b{font-weight:600}
+.pub .in{padding-block:46px 30px;display:grid;grid-template-columns:minmax(0,5fr) minmax(0,7fr);gap:40px;align-items:start}
+.pub h2{font-family:var(--display);font-weight:400;font-size:clamp(1.7rem,3.2vw,2.3rem);margin:8px 0 12px}
+.pub p{color:var(--muted);margin:0 0 14px;max-width:46ch}
 .board{background:var(--surface);border:1px solid var(--line);border-radius:16px;overflow:hidden}
-.board-h{display:flex;justify-content:space-between;align-items:baseline;gap:12px;padding:18px 20px;border-bottom:1px solid var(--line);flex-wrap:wrap}
-.board-h h2{font-family:var(--display);font-weight:400;font-size:22px;margin:0}
+.board-h{display:flex;justify-content:space-between;align-items:baseline;gap:12px;padding:16px 20px;border-bottom:1px solid var(--line);flex-wrap:wrap}
+.board-h b{font-family:var(--display);font-weight:400;font-size:22px}
 .board-h span{font-family:var(--mono);font-size:12px;color:var(--muted)}
 .needs{list-style:none;margin:0;padding:0}
-.needs li{display:grid;grid-template-columns:auto 1fr auto;gap:4px 14px;padding:13px 20px;border-bottom:1px solid var(--line);align-items:center}
-.needs li:last-child{border-bottom:0}
+.needs li{display:grid;grid-template-columns:auto 1fr auto;gap:2px 14px;padding:12px 20px;border-top:1px solid var(--line);align-items:center}
+.needs li:first-child{border-top:0}
+.needs .dot{grid-row:span 2}
 .needs .nm{font-weight:600}
 .needs .cat{font-size:13px;color:var(--muted)}
 .needs .amt{font-family:var(--mono);font-size:13px;text-align:right;color:var(--muted)}
 .needs .amt b{color:var(--fg);font-weight:500}
-.dot{width:10px;height:10px;border-radius:50%;grid-row:span 2}
-.dot.critical{background:var(--crit)} .dot.low{background:var(--low)}
-.board-f{padding:12px 20px;background:var(--soft);font-size:13px;color:var(--muted);display:flex;gap:16px;flex-wrap:wrap}
-.board-f span{display:inline-flex;align-items:center;gap:6px}
-.board-f .dot{grid-row:auto;width:8px;height:8px}
-.thanks{padding:16px 20px;font-size:14px;color:var(--muted)}
+.board-f{padding:12px 20px;background:var(--soft);font-size:13px;color:var(--muted)}
 
-/* app */
-.app{background:var(--soft);border-top:1px solid var(--line);border-bottom:1px solid var(--line)}
-.app .in{padding-block:44px 56px}
-.app-h{display:flex;justify-content:space-between;align-items:end;gap:16px;flex-wrap:wrap;margin-bottom:22px}
-.app-h h2{font-family:var(--display);font-weight:400;font-size:clamp(1.7rem,3.2vw,2.3rem);margin:6px 0 0}
-.app-h p{margin:6px 0 0;color:var(--muted);max-width:60ch;font-size:14px}
-.pub{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
-.pub small{color:var(--muted);font-size:13px}
-.btn{border:1px solid var(--line);background:var(--surface);border-radius:9px;padding:8px 14px;cursor:pointer;font-weight:500;font-size:14px}
-.btn:hover{border-color:var(--muted)}
-.btn.primary{background:var(--accent);color:var(--accent-fg);border-color:var(--accent)}
-.btn.primary:hover{filter:brightness(1.08)}
-.btn.small{padding:4px 9px;font-size:12.5px;border-radius:7px}
-.btn.ghost{background:transparent;border-color:transparent;color:var(--muted)}
-.btn.ghost:hover{color:var(--fg);border-color:var(--line)}
-
-.tiles{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px;margin-bottom:18px}
-.tile{background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:14px 16px}
-.tile .k{font-size:12.5px;color:var(--muted)}
-.tile .v{font-family:var(--display);font-size:28px;line-height:1.2;margin-top:2px}
-.tile .s{font-size:12.5px;color:var(--muted)}
-.tile.crit .v{color:var(--crit)}
-
-.tabs{display:flex;gap:4px;border-bottom:1px solid var(--line);margin-bottom:0;overflow-x:auto}
-.tabs button{border:0;background:transparent;padding:10px 14px;cursor:pointer;color:var(--muted);font-weight:500;border-bottom:2px solid transparent;margin-bottom:-1px;white-space:nowrap}
-.tabs button[aria-selected="true"]{color:var(--fg);border-color:var(--accent)}
-.panel{background:var(--surface);border:1px solid var(--line);border-top:0;border-radius:0 0 12px 12px;padding:16px}
-.toolbar{display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin-bottom:12px}
-.toolbar .grow{flex:1}
-.toolbar input[type=search]{border:1px solid var(--line);background:var(--bg);border-radius:8px;padding:7px 10px;min-width:0;width:220px;max-width:100%}
-.scroll{overflow-x:auto;border:1px solid var(--line);border-radius:10px}
-table{border-collapse:collapse;width:100%;font-size:13.5px}
-th{font-size:11.5px;font-weight:600;text-transform:uppercase;letter-spacing:.05em;color:var(--muted);text-align:left;padding:9px 10px;background:var(--soft);border-bottom:1px solid var(--line);white-space:nowrap;position:sticky;top:0}
-td{padding:0;border-bottom:1px solid var(--line);border-right:1px solid var(--line);vertical-align:middle}
-td:last-child{border-right:0}
-tr:last-child td{border-bottom:0}
-td.ro{padding:7px 10px;white-space:nowrap}
-.cell{width:100%;border:0;background:transparent;padding:7px 10px;min-width:70px}
-.cell:focus{background:var(--soft);outline:2px solid var(--accent);outline-offset:-2px}
-select.cell{appearance:none;cursor:pointer}
-td.r,th.r{text-align:right}
-td.r .cell{text-align:right}
-.w-name{min-width:170px}
-.pill{display:inline-block;font-size:11.5px;font-weight:600;padding:2px 8px;border-radius:999px;text-transform:capitalize}
-.pill.critical{background:var(--crit-bg);color:var(--crit)} .pill.low{background:var(--low-bg);color:var(--low)}
-.pill.ok{background:var(--ok-bg);color:var(--ok)} .pill.plenty{background:var(--plenty-bg);color:var(--plenty)}
-.pill.new{background:var(--soft);color:var(--muted)}
-.exp-soon{color:var(--crit);font-weight:600}
-tr.sel td{background:var(--soft)}
-tr.click{cursor:pointer}
-tr.click:hover td{background:var(--soft)}
-
-.fc{display:grid;grid-template-columns:minmax(0,1fr) 340px;gap:16px}
-.detail{border:1px solid var(--line);border-radius:10px;padding:14px;align-self:start}
-.detail h3{font-family:var(--display);font-weight:400;font-size:20px;margin:0 0 2px}
-.detail .sub{font-size:13px;color:var(--muted);margin-bottom:10px}
-.detail dl{display:grid;grid-template-columns:auto auto;gap:6px 12px;margin:12px 0 0;font-size:13px}
-.detail dt{color:var(--muted)} .detail dd{margin:0;text-align:right;font-family:var(--mono);font-size:12.5px}
-.chart text{fill:var(--muted);font-family:var(--mono);font-size:9px}
-.settings{display:flex;gap:14px;flex-wrap:wrap;align-items:center;font-size:13px;color:var(--muted)}
-.settings label{display:flex;align-items:center;gap:6px}
-.settings input{width:64px;border:1px solid var(--line);background:var(--bg);border-radius:7px;padding:4px 7px}
-
-.log{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:20px}
-.card{border:1px solid var(--line);border-radius:10px;padding:14px}
-.card h3{margin:0 0 4px;font-size:15px}
-.card p.h{margin:0 0 12px;color:var(--muted);font-size:13px}
-.form{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
-.form label{display:grid;gap:4px;font-size:12.5px;color:var(--muted)}
-.form .full{grid-column:1/-1}
-.form input,.form select,textarea{border:1px solid var(--line);background:var(--bg);border-radius:8px;padding:7px 9px;min-width:0;width:100%}
-textarea{resize:vertical;font-family:var(--mono);font-size:12.5px}
-.seg{display:flex;border:1px solid var(--line);border-radius:8px;overflow:hidden}
-.seg button{flex:1;border:0;background:var(--bg);padding:7px;cursor:pointer;font-size:13px}
-.seg button[aria-pressed="true"]{background:var(--accent);color:var(--accent-fg)}
-.draft td.ro{font-size:13px}
-.flag{color:var(--low);font-size:12px}
-.moves{list-style:none;margin:0;padding:0;font-size:13px}
-.moves li{display:grid;grid-template-columns:78px 1fr auto auto;gap:10px;padding:8px 0;border-bottom:1px solid var(--line);align-items:center}
-.moves .k{font-family:var(--mono);font-size:11.5px;color:var(--muted)}
-.moves .q{font-family:var(--mono);font-size:12.5px}
-.moves .rev{color:var(--muted);text-decoration:line-through}
-.toast{position:fixed;left:50%;bottom:calc(20px + env(safe-area-inset-bottom,0px));transform:translateX(-50%);background:var(--fg);color:var(--bg);padding:9px 16px;border-radius:999px;font-size:13.5px;opacity:0;transition:opacity .2s;pointer-events:none;z-index:5}
-.toast.on{opacity:1}
-
-/* how it works */
-.how .in{padding-block:52px 70px}
-.how h2{font-family:var(--display);font-weight:400;font-size:clamp(1.6rem,3vw,2.1rem);margin:8px 0 26px;max-width:24ch}
-.rules{display:grid;grid-template-columns:repeat(auto-fit,minmax(230px,1fr));gap:28px}
-.rules h3{font-size:15px;margin:0 0 6px}
-.rules p{margin:0;color:var(--muted);font-size:14px}
-.rules code{font-family:var(--mono);font-size:12.5px;background:var(--soft);padding:1px 5px;border-radius:4px}
-.uses{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:14px}
-.uses article{background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:16px 18px;display:grid;gap:6px;align-content:start}
-.uses b{font-size:15.5px}
-.uses p{margin:0;color:var(--muted);font-size:14px}
-.uses .tag{font-family:var(--mono);font-size:11.5px;color:var(--accent);margin-top:4px}
-.who{font-family:var(--display);font-weight:400;font-size:20px;margin:40px 0 12px}
-.who-list{list-style:none;margin:0;padding:0;display:flex;flex-wrap:wrap;gap:8px}
-.who-list li{border:1px solid var(--line);background:var(--surface);border-radius:999px;padding:6px 14px;font-size:14px}
-.built{margin:32px 0 0;color:var(--muted);font-size:14px;max-width:70ch}
-@media (max-width:900px){.uses{grid-template-columns:1fr}}
+.uses .in{padding-block:46px 70px}
+.uses h2{font-family:var(--display);font-weight:400;font-size:clamp(1.7rem,3.2vw,2.3rem);margin:8px 0 22px;max-width:26ch}
+.ugrid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:14px}
+.ugrid article{background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:16px 18px;display:grid;gap:6px;align-content:start}
+.ugrid b{font-size:15.5px}.ugrid p{margin:0;color:var(--muted);font-size:14px}
+.ugrid .tag{font-family:var(--mono);font-size:11.5px;color:var(--accent)}
+.who{display:flex;flex-wrap:wrap;gap:8px;margin-top:26px;list-style:none;padding:0}
+.who li{border:1px solid var(--line);background:var(--surface);border-radius:999px;padding:6px 14px;font-size:14px}
 .foot .in{padding-block:22px;border-top:1px solid var(--line);display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;font-size:13px;color:var(--muted)}
+.toast{position:fixed;left:50%;bottom:calc(20px + env(safe-area-inset-bottom,0px));transform:translateX(-50%) translateY(20px);background:var(--fg);color:var(--bg);padding:9px 10px 9px 16px;border-radius:999px;font-size:14px;opacity:0;transition:.2s;pointer-events:none;z-index:30;display:flex;gap:10px;align-items:center}
+.toast.on{opacity:1;transform:translateX(-50%);pointer-events:auto}
+.toast button{all:unset;cursor:pointer;font-weight:700;color:var(--kraft);padding:2px 8px}
 
-@media (max-width:900px){.hero .in{grid-template-columns:1fr;gap:28px}.fc{grid-template-columns:1fr}.log{grid-template-columns:1fr}.tiles{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media (max-width:980px){.hero .in,.pub .in{grid-template-columns:1fr}.ugrid{grid-template-columns:1fr 1fr}.shots .phone{right:8px}}
+@media (max-width:820px){
+  .app{grid-template-columns:1fr;min-height:0}
+  .side{flex-direction:row;overflow-x:auto;border-right:0;border-bottom:1px solid var(--line);padding:8px}
+  .side .who,.side .sp{display:none}
+  .nav-b{flex:none;padding:8px 10px}
+  .view{padding:18px 14px 22px}
+  .actions,.two{grid-template-columns:1fr}
+  .rrow{grid-template-columns:minmax(0,1fr) 80px 36px}.rrow .ex{grid-column:1/3}.rrow.head{display:none}
+  .shelf li{grid-template-columns:minmax(0,1fr) auto}.exp{display:none}
+  .fc li{grid-template-columns:10px minmax(0,1fr) auto}.fc li svg{display:none}
+  .ugrid{grid-template-columns:1fr}
+}
 @media (prefers-reduced-motion:reduce){*{transition:none!important}}
 </style>
 </head>
 <body>
 
 <header class="top band"><div class="in">
-  <a class="logo" href="#top" id="top"><i aria-hidden="true"></i>Smart Shelf</a>
-  <nav aria-label="Page"><a href="#need">What we need</a><a href="#stockroom">Stockroom</a><a href="#uses">Ways to use it</a></nav>
+  <span class="logo"><i aria-hidden="true"></i>Smart Shelf</span>
+  <nav aria-label="Page"><a href="#app">Try the app</a><a href="#public">Public list</a><a href="#uses">Ways to use it</a><a href="https://github.com/bnvac/foodpantryapp" target="_blank" rel="noopener">Source</a></nav>
 </div></header>
 
-<section class="hero band" id="need"><div class="in">
+<section class="hero band"><div class="in">
   <div>
-    <div class="eyebrow">Community food pantry</div>
-    <h1>Here's what our shelves need this week.</h1>
-    <p>This list is written by our stockroom, not by a person guessing. When a shelf is about to run out, it shows up here. Bring what's at the top first.</p>
-    <div class="dropoff"><b>Drop-off</b><span>Tuesdays 4–7 pm · Saturdays 9–noon</span><span>Unopened, in date, no glass please.</span></div>
+    <div class="eyebrow">Stock control for food pantries</div>
+    <h1>Know what's on the shelf, and what runs out next.</h1>
+    <p>Volunteers tap what comes in and goes out. Smart Shelf forecasts each item's run-out date from real usage, and publishes a "what we need" list to the pantry's website, so donors bring the right things.</p>
+    <div class="row"><a class="btn primary big" href="#app">Try the app</a><a class="btn big" href="#public">See the public list</a></div>
   </div>
-  <div class="board" aria-live="polite">
-    <div class="board-h"><h2>We need</h2><span id="pubdate">—</span></div>
-    <ul class="needs" id="needs"></ul>
-    <div class="board-f"><span><i class="dot critical"></i>Running out this week</span><span><i class="dot low"></i>Low</span><span id="pubwt"></span></div>
-  </div>
-</div></section>
-
-<section class="app band" id="stockroom"><div class="in">
-  <div class="app-h">
-    <div>
-      <div class="eyebrow">Volunteer view · prototype</div>
-      <h2>The stockroom</h2>
-      <p>Edit the sheet like a spreadsheet, log what came in and went out, and the forecast works out what runs out and when. Example data; your edits stay in this browser.</p>
-    </div>
-    <div class="pub"><small id="pubstate"></small><button class="btn primary" id="publish" type="button">Update website</button></div>
-  </div>
-
-  <div class="tiles" id="tiles"></div>
-
-  <div class="tabs" role="tablist" aria-label="Stockroom">
-    <button role="tab" aria-selected="true" aria-controls="p-sheet" id="t-sheet">Sheet</button>
-    <button role="tab" aria-selected="false" aria-controls="p-fc" id="t-fc">Forecast</button>
-    <button role="tab" aria-selected="false" aria-controls="p-log" id="t-log">Log in / out</button>
-    <button role="tab" aria-selected="false" aria-controls="p-io" id="t-io">Import / export</button>
-  </div>
-
-  <div class="panel" role="tabpanel" id="p-sheet" aria-labelledby="t-sheet">
-    <div class="toolbar">
-      <input type="search" id="q" placeholder="Filter items…" aria-label="Filter items">
-      <select id="fcat" class="btn" aria-label="Category filter"></select>
-      <span class="grow"></span>
-      <button class="btn" id="addrow" type="button">+ Add item</button>
-    </div>
-    <div class="scroll"><table id="sheet">
-      <thead><tr><th class="w-name">Item</th><th>Category</th><th>Unit</th><th class="r">lb / unit</th><th>Location</th><th class="r">On hand</th><th class="r">lbs</th><th class="r">Par</th><th>Next expiry</th><th>Status</th><th></th></tr></thead>
-      <tbody></tbody>
-    </table></div>
-    <p style="font-size:12.5px;color:var(--muted);margin:10px 0 0">Changing <b>On hand</b> records a count: the difference is logged as an adjustment, never overwritten.</p>
-  </div>
-
-  <div class="panel" role="tabpanel" id="p-fc" aria-labelledby="t-fc" hidden>
-    <div class="toolbar settings">
-      <label>Season multiplier <input type="number" step="0.05" min="0.5" max="3" id="season"></label>
-      <label>Order lead time (days) <input type="number" step="1" min="0" max="30" id="lead"></label>
-      <span class="grow"></span><span>Weekly use = weighted average of recent weeks (α 0.3), stock-out weeks left out.</span>
-    </div>
-    <div class="fc">
-      <div class="scroll"><table id="fctable">
-        <thead><tr><th>Item</th><th>Last 10 weeks</th><th class="r">Use / wk</th><th class="r">Usable</th><th class="r">Cover</th><th>Runs out</th><th>Order by</th><th class="r">Need</th><th class="r">lbs</th><th>Status</th></tr></thead>
-        <tbody></tbody>
-      </table></div>
-      <aside class="detail" id="detail" aria-live="polite"></aside>
-    </div>
-  </div>
-
-  <div class="panel" role="tabpanel" id="p-log" aria-labelledby="t-log" hidden>
-    <div class="log">
-      <div style="display:grid;gap:16px;align-content:start">
-        <form class="card" id="mvform">
-          <h3>One entry</h3><p class="h">Out is taken oldest expiry first. You never pick a batch.</p>
-          <div class="form">
-            <div class="full seg" role="group" aria-label="Kind" id="kindseg">
-              <button type="button" data-k="receive" aria-pressed="true">Received</button>
-              <button type="button" data-k="out" aria-pressed="false">Given out</button>
-              <button type="button" data-k="spoil" aria-pressed="false">Spoiled</button>
-            </div>
-            <label class="full">Item <input list="itemlist" id="mvitem" required autocomplete="off"></label>
-            <label>Quantity <input type="number" min="0.1" step="any" id="mvqty" required></label>
-            <label>Date <input type="date" id="mvdate" required></label>
-            <label id="expwrap">Expires <input type="date" id="mvexp"></label>
-            <label>Note <input id="mvnote" placeholder="food bank, drive…"></label>
-            <div class="full"><button class="btn primary" type="submit">Save entry</button></div>
-          </div>
-        </form>
-        <div class="card">
-          <h3>Paste a donation list</h3><p class="h">Type it the way you'd say it. It makes a draft; nothing saves until you confirm. (The real app sends a photo or this text to Claude for the draft.)</p>
-          <textarea id="paste" rows="4" aria-label="Donation list">2 cases tuna, 40 lb potatoes
-a dozen cereal exp 3/27
-18 jars peanut butter</textarea>
-          <div style="display:flex;gap:8px;margin-top:10px"><button class="btn" id="parse" type="button">Make draft</button></div>
-          <div id="draft"></div>
-        </div>
-      </div>
-      <div class="card">
-        <h3>Recent entries</h3><p class="h">Append-only. Undo posts a reversing entry, so the history always adds up.</p>
-        <ul class="moves" id="moves"></ul>
-      </div>
-    </div>
-    <datalist id="itemlist"></datalist>
-  </div>
-
-  <div class="panel" role="tabpanel" id="p-io" aria-labelledby="t-io" hidden>
-    <div class="log">
-      <div class="card">
-        <h3>Export</h3><p class="h">CSV of the sheet with the forecast columns, for a food-bank order or a food-drive flyer.</p>
-        <textarea id="csvout" rows="10" readonly aria-label="CSV export"></textarea>
-        <div style="display:flex;gap:8px;margin-top:10px;flex-wrap:wrap"><button class="btn" id="copycsv" type="button">Copy CSV</button><button class="btn" id="copyneeds" type="button">Copy "we need" text</button></div>
-      </div>
-      <div class="card">
-        <h3>Import a sheet</h3><p class="h">Paste or open a CSV with <code>name, category, unit, lb_per_unit, location, par, on_hand</code>. Existing items are matched by name and counted; new ones are added.</p>
-        <textarea id="csvin" rows="6" aria-label="CSV import" placeholder="name,category,unit,lb_per_unit,location,par,on_hand&#10;Canned soup,Vegetables,each,0.7,Shelf B,40,22"></textarea>
-        <div style="display:flex;gap:8px;margin-top:10px;flex-wrap:wrap;align-items:center"><button class="btn primary" id="doimport" type="button">Import</button><label class="btn" for="csvfile" style="cursor:pointer">Open file…</label><input type="file" id="csvfile" accept=".csv,text/csv" hidden><span class="grow"></span><button class="btn ghost" id="reset" type="button">Reset example data</button></div>
-        <p id="resetask" style="font-size:13px;margin:10px 0 0" hidden>Replace everything with the example data? <button class="btn small" id="resetyes" type="button">Yes, reset</button> <button class="btn small ghost" id="resetno" type="button">Cancel</button></p>
-      </div>
-    </div>
+  <div class="shots">
+    <img class="desk" src="img/ss-hero.jpg" alt="Smart Shelf Today screen in dark mode: big buttons to give out, receive or count, and what is running low." width="1180" height="760">
+    <img class="phone" src="img/ss-phone.jpg" alt="Smart Shelf on a phone: the Give out screen, where a volunteer taps an item for each one handed out." width="780" height="1446">
   </div>
 </div></section>
 
-<section class="how band" id="uses"><div class="in">
+<section class="appsec band" id="app"><div class="in">
+  <div class="sechead">
+    <div><div class="eyebrow">Live demo · example data · saved in your browser</div><h2>Run a Saturday</h2><p>Everything here works. Tap Give out like a volunteer at the door, receive a truck, count a shelf, then publish what you need.</p></div>
+  </div>
+  <div class="app">
+    <nav class="side" aria-label="App">
+      <div class="who"><b>Saint Mark's Pantry</b>Volunteer</div>
+      <button class="nav-b" data-v="today"><svg viewBox="0 0 24 24"><path d="M3 11l9-7 9 7v9a1 1 0 0 1-1 1h-5v-6H9v6H4a1 1 0 0 1-1-1z"/></svg>Today</button>
+      <button class="nav-b" data-v="out"><svg viewBox="0 0 24 24"><path d="M5 12h14M13 6l6 6-6 6"/></svg>Give out</button>
+      <button class="nav-b" data-v="in"><svg viewBox="0 0 24 24"><path d="M19 12H5M11 6l-6 6 6 6"/></svg>Receive</button>
+      <button class="nav-b" data-v="count"><svg viewBox="0 0 24 24"><path d="M4 6h16M4 12h16M4 18h10"/></svg>Count</button>
+      <button class="nav-b" data-v="shelf"><svg viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="16" rx="2"/><path d="M3 10h18M3 15h18"/></svg>Shelf</button>
+      <button class="nav-b" data-v="fc"><svg viewBox="0 0 24 24"><path d="M4 19V5M4 19h16M8 15l4-5 3 3 5-6"/></svg>Forecast<span class="badge" id="critn" hidden></span></button>
+      <button class="nav-b" data-v="web"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M3 12h18M12 3c3 3 3 15 0 18M12 3c-3 3-3 15 0 18"/></svg>Website</button>
+      <span class="sp"></span>
+      <button class="nav-b" data-v="data"><svg viewBox="0 0 24 24"><path d="M12 3v12M7 10l5 5 5-5M5 21h14"/></svg>Import / export</button>
+    </nav>
+    <main class="view" id="view" aria-live="polite"></main>
+  </div>
+</div></section>
+
+<section class="pub band" id="public"><div class="in">
+  <div>
+    <div class="eyebrow">What the website shows</div>
+    <h2>A list that writes itself.</h2>
+    <p>When a shelf is about to run out, it appears here, most urgent first, with amounts and a date. Press <b>Update website</b> in the app and this changes.</p>
+    <p>Embed it on the pantry's site, print it for a food drive, or paste it into a post.</p>
+  </div>
+  <div class="board"><div class="board-h"><b>We need</b><span id="pubdate"></span></div><ul class="needs" id="needs"></ul><div class="board-f" id="pubf"></div></div>
+</div></section>
+
+<section class="uses band" id="uses"><div class="in">
   <div class="eyebrow">Ways to use it</div>
-  <h2>One shelf sheet, a forecast, and a list the public can see.</h2>
-  <div class="uses">
-    <article><b>Saturday distribution</b><p>Volunteers tap "Given out" on a phone as bags go out. Or skip that and do one count at closing; the difference is logged as what left.</p><span class="tag">Log · Count</span></article>
-    <article><b>Unloading a food-bank truck</b><p>Photograph each sorted pile. The draft fills in item, count and any legible date. Someone checks it and saves. Nothing is typed twice.</p><span class="tag">Photo intake</span></article>
-    <article><b>Ordering from the food bank</b><p>Copy the "we need" list in pounds, the unit food banks order in, with an order-by date that allows for delivery time.</p><span class="tag">Forecast · Export</span></article>
-    <article><b>A food drive that asks for the right things</b><p>Press Update website and the drive's page, flyer and social post all say the same thing: what runs out first.</p><span class="tag">Public list</span></article>
-    <article><b>Thanksgiving</b><p>Set the season multiplier to 1.4 in October and every run-out date moves forward, while there's still time to ask for more.</p><span class="tag">Season</span></article>
-    <article><b>Infant formula</b><p>Its date is a use-by. Expired formula can't be logged out, doesn't count toward stock, and anything expiring within 30 days goes out first.</p><span class="tag">Expiry rules</span></article>
+  <h2>Built for volunteers who change every week.</h2>
+  <div class="ugrid">
+    <article><b>Distribution day</b><p>A volunteer at the door taps an item each time one goes in a bag. One button logs the lot.</p><span class="tag">Give out</span></article>
+    <article><b>Unloading a truck</b><p>Type or paste the delivery the way you'd say it. It drafts rows; someone checks and saves. (The full version reads a photo.)</p><span class="tag">Receive</span></article>
+    <article><b>Closing count</b><p>Walk one shelf, type what's there. The difference is logged as what left, so nothing has to be tapped during a rush.</p><span class="tag">Count</span></article>
+    <article><b>Ordering from the food bank</b><p>Copy the shortfall in pounds, the unit food banks order in, with an order-by date that allows for delivery.</p><span class="tag">Forecast · Export</span></article>
+    <article><b>Thanksgiving</b><p>Raise the season multiplier in October and every run-out date moves forward while there's still time to ask.</p><span class="tag">Forecast</span></article>
+    <article><b>Infant formula</b><p>Its date is a use-by. Expired formula can't be given out and doesn't count as stock; anything near its date is flagged first.</p><span class="tag">Expiry rules</span></article>
   </div>
-  <h3 class="who">Who it's for</h3>
-  <ul class="who-list">
-    <li>Church and community pantries</li><li>Campus pantries</li><li>School backpack programs</li><li>Community fridges</li><li>Shelters and soup kitchens</li><li>Disaster relief depots</li><li>Pet food banks</li>
-  </ul>
-  <p class="built">No client records, ever: it forecasts from what leaves the shelf, not who takes it. Built on an append-only ledger, so every number can be traced to an entry. Production design: Django and SQLite, with Claude Haiku drafting photo intake for a person to confirm.</p>
+  <ul class="who"><li>Church and community pantries</li><li>Campus pantries</li><li>School backpack programs</li><li>Community fridges</li><li>Shelters and soup kitchens</li><li>Disaster relief depots</li><li>Pet food banks</li></ul>
+  <p style="margin:28px 0 0;color:var(--muted);font-size:14px;max-width:72ch">No client records, ever: it forecasts from what leaves the shelf, not who takes it. Every change is an entry in an append-only log, so any number can be traced and any mistake undone without erasing history.</p>
 </div></section>
 
-<footer class="foot band"><div class="in"><span>Smart Shelf · <a href="https://github.com/bnvac/foodpantryapp" target="_blank" rel="noopener">source</a></span><span>No household data, ever.</span></div></footer>
-<div class="toast" id="toast" role="status"></div>
+<footer class="foot band"><div class="in"><span>Smart Shelf</span><a href="https://github.com/bnvac/foodpantryapp" target="_blank" rel="noopener">github.com/bnvac/foodpantryapp</a></div></footer>
+<div class="toast" id="toast" role="status"><span id="toastmsg"></span><button type="button" id="toastundo" hidden>Undo</button></div>
+<div class="scrim" id="scrim" hidden><aside class="drawer" id="drawer" role="dialog" aria-modal="true" aria-labelledby="dname" tabindex="-1"></aside></div>
 
 <script>
 (function(){
 "use strict";
-var KEY="smartshelf.v1", DAY=864e5;
+var KEY="smartshelf.v2", DAY=864e5;
 var CATS={"Protein":3,"Grains":3,"Breakfast":3,"Vegetables":3,"Produce":1,"Dairy":2,"Baby":4,"Personal care":4};
 var LOCS=["Shelf A","Shelf B","Shelf C","Walk-in fridge","Back room"];
-var UNITS=["each","lb","case","box","bag","jar","pack"];
-
-/* ---------- dates ---------- */
+var UNITS=["each","lb","case","box","bag","jar","pack","can"];
 function pad(n){return (n<10?"0":"")+n}
 function toS(t){var d=new Date(t);return d.getUTCFullYear()+"-"+pad(d.getUTCMonth()+1)+"-"+pad(d.getUTCDate())}
 function toT(s){var p=s.split("-");return Date.UTC(+p[0],+p[1]-1,+p[2])}
-var now=new Date(), TODAY=toS(Date.UTC(now.getFullYear(),now.getMonth(),now.getDate())), T0=toT(TODAY);
+var now=new Date(),TODAY=toS(Date.UTC(now.getFullYear(),now.getMonth(),now.getDate())),T0=toT(TODAY);
 function addD(s,n){return toS(toT(s)+n*DAY)}
 function monday(s){var t=toT(s),wd=(new Date(t).getUTCDay()+6)%7;return toS(t-wd*DAY)}
 var MON=["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"];
 function nice(s){if(!s)return "—";if(s===TODAY)return "today";var d=new Date(toT(s));return MON[d.getUTCMonth()]+" "+d.getUTCDate()}
 function daysTo(s){return Math.round((toT(s)-T0)/DAY)}
+function round2(x){return Math.round(x*100)/100}
+function fmt(n,d){if(n==null||isNaN(n))return "—";return (+n).toLocaleString(undefined,{maximumFractionDigits:d==null?1:d})}
+function plural(u,n){if(u==="each")return n===1?"":"";if(u==="lb")return "lb";return n===1?u:(u==="box"?"boxes":u+"s")}
+function qtyText(n,u){var p=plural(u,n);return fmt(n,0)+(p?" "+p:"")}
 
-/* ---------- example data (deterministic) ---------- */
+/* ---------- example data ---------- */
 function rng(seed){return function(){seed=(seed*16807)%2147483647;return (seed-1)/2147483646}}
 function sample(){
-  // name, category, unit, lb/unit, location, par, policy, shelfDays, weekly use, target weeks of cover at the end
-  var spec=[
-    ["Canned tuna","Protein","each",0.31,"Shelf A",60,"soft",0,46,0.6],
-    ["Peanut butter","Protein","jar",1.0,"Shelf A",40,"soft",0,22,1.7],
-    ["Canned chicken","Protein","each",0.78,"Shelf A",30,"soft",0,14,4.2],
-    ["Dry pasta","Grains","box",1.0,"Shelf B",80,"soft",0,38,7.5],
-    ["Rice","Grains","bag",2.0,"Shelf B",50,"soft",0,20,3.4],
-    ["Oatmeal","Grains","each",2.6,"Shelf B",25,"soft",0,9,2.1],
-    ["Cereal","Breakfast","box",0.9,"Shelf B",50,"soft",0,31,2.1],
-    ["Canned green beans","Vegetables","each",0.9,"Shelf C",60,"soft",0,35,9.8],
-    ["Canned tomatoes","Vegetables","each",0.9,"Shelf C",40,"soft",0,18,5.1],
-    ["Potatoes","Produce","lb",1.0,"Back room",120,"perishable",21,95,1.3],
-    ["Apples","Produce","lb",1.0,"Walk-in fridge",80,"perishable",28,60,1.6],
-    ["Shelf-stable milk","Dairy","each",2.2,"Shelf C",30,"soft",0,24,2.6],
-    ["Infant formula","Baby","each",0.8,"Shelf A",12,"hard",0,5,1.2],
-    ["Baby food","Baby","jar",0.25,"Shelf A",40,"hard",0,12,6.0],
-    ["Diapers, size 4","Personal care","pack",3.0,"Back room",15,"soft",0,7,0.8],
-    ["Toothpaste","Personal care","each",0.3,"Shelf C",30,"soft",0,10,5.5]
-  ];
-  var r=rng(42), items=[], moves=[], id=1, thisMon=monday(TODAY), start=addD(thisMon,-70);
+  var spec=[["Canned tuna","Protein","can",0.31,"Shelf A",60,"soft",0,46,0.7],["Peanut butter","Protein","jar",1.0,"Shelf A",40,"soft",0,22,1.8],["Canned chicken","Protein","can",0.78,"Shelf A",30,"soft",0,14,4.2],
+  ["Dry pasta","Grains","box",1.0,"Shelf B",80,"soft",0,38,7.5],["Rice","Grains","bag",2.0,"Shelf B",50,"soft",0,20,3.4],["Oatmeal","Grains","each",2.6,"Shelf B",25,"soft",0,9,2.3],
+  ["Cereal","Breakfast","box",0.9,"Shelf B",50,"soft",0,31,2.2],["Canned green beans","Vegetables","can",0.9,"Shelf C",60,"soft",0,35,9.8],["Canned tomatoes","Vegetables","can",0.9,"Shelf C",40,"soft",0,18,5.1],
+  ["Potatoes","Produce","lb",1.0,"Back room",120,"perishable",21,95,1.6],["Apples","Produce","lb",1.0,"Walk-in fridge",80,"perishable",28,60,1.7],["Shelf-stable milk","Dairy","each",2.2,"Shelf C",30,"soft",0,24,2.6],
+  ["Infant formula","Baby","can",0.8,"Shelf A",12,"hard",0,5,1.1],["Baby food","Baby","jar",0.25,"Shelf A",40,"hard",0,12,6.0],["Diapers, size 4","Personal care","pack",3.0,"Back room",15,"soft",0,7,0.8],["Toothpaste","Personal care","each",0.3,"Shelf C",30,"soft",0,10,5.5]];
+  var r=rng(42),items=[],moves=[],id=1,thisMon=monday(TODAY),start=addD(thisMon,-70);
   spec.forEach(function(s,i){
-    var it={id:"i"+(i+1),name:s[0],category:s[1],unit:s[2],lb:s[3],location:s[4],par:s[5],policy:s[6],shelfDays:s[7]};
-    items.push(it);
-    var b=s[8], outs=[], totOut=0, recs=[], totRec=0;
-    for(var w=0;w<10;w++){
-      [1,5].forEach(function(dd){var q=Math.max(1,Math.round(b/2*(0.75+r()*0.5)*(w>6?1.12:1)));outs.push([addD(start,w*7+dd),q]);totOut+=q;});
-      if(w>0&&w<9&&w%2===0){var q=Math.round(b*2*(0.8+r()*0.4));recs.push([addD(start,w*7),q]);totRec+=q;}
-    }
-    var s0=Math.max(Math.round(b*s[9]+totOut-totRec),Math.round(b*2.2));
-    recs.unshift([addD(start,-3),s0]);
-    // outs this week so far
-    var dtw=daysTo(thisMon);
-    recs.forEach(function(x){moves.push(mv(it,"receive",x[1],x[0],expFor(it,x[0]),"food bank"));});
-    outs.forEach(function(x){moves.push(mv(it,"out",-x[1],x[0],null,""));});
-    if(daysTo(addD(thisMon,1))<=0) moves.push(mv(it,"out",-Math.max(1,Math.round(b*0.4)),addD(thisMon,1),null,""));
+    var it={id:"i"+(i+1),name:s[0],category:s[1],unit:s[2],lb:s[3],location:s[4],par:s[5],policy:s[6],shelfDays:s[7]};items.push(it);
+    var b=s[8],outs=[],totOut=0,recs=[],totRec=0;
+    for(var w=0;w<10;w++){[1,5].forEach(function(dd){var q=Math.max(1,Math.round(b/2*(.75+r()*.5)*(w>6?1.12:1)));outs.push([addD(start,w*7+dd),q]);totOut+=q});
+      if(w>0&&w<9&&w%2===0){var q=Math.round(b*2*(.8+r()*.4));recs.push([addD(start,w*7),q]);totRec+=q}}
+    var s0=Math.max(Math.round(b*s[9]+totOut-totRec),Math.round(b*2.2));recs.unshift([addD(start,-3),s0]);
+    recs.forEach(function(x){moves.push(mv(it,"receive",x[1],x[0],expFor(it,x[0]),"food bank"))});
+    outs.forEach(function(x){moves.push(mv(it,"out",-x[1],x[0],null,""))});
+    if(daysTo(addD(thisMon,1))<=0)moves.push(mv(it,"out",-Math.max(1,Math.round(b*.4)),addD(thisMon,1),null,""));
   });
   function mv(it,k,q,d,e,n){return {id:"m"+(id++),item:it.id,kind:k,qty:q,date:d,expires:e,note:n,via:"form"}}
-  function expFor(it,d){
-    if(it.policy==="perishable") return addD(d,it.shelfDays);
-    if(it.policy==="hard") return addD(d,it.name==="Infant formula"?92:200);
-    return addD(d,300+Math.round(r()*200));
-  }
+  function expFor(it,d){if(it.policy==="perishable")return addD(d,it.shelfDays);if(it.policy==="hard")return addD(d,it.name==="Infant formula"?92:200);return addD(d,300+Math.round(r()*200))}
   moves.sort(function(a,b){return a.date<b.date?-1:a.date>b.date?1:0});
-  return {items:items,moves:moves,settings:{season:1.0,lead:7},published:null,nextId:id};
+  return {items:items,moves:moves,settings:{season:1,lead:7},published:null,nextId:id};
 }
-
-/* ---------- state ---------- */
-var S;
-function load(){try{var j=localStorage.getItem(KEY);if(j){S=JSON.parse(j);return}}catch(e){} S=sample();}
+var S;try{var j=localStorage.getItem(KEY);if(j)S=JSON.parse(j)}catch(e){}
+if(!S)S=sample();
 function save(){try{localStorage.setItem(KEY,JSON.stringify(S))}catch(e){}}
-load();
 function item(id){for(var i=0;i<S.items.length;i++)if(S.items[i].id===id)return S.items[i];return null}
-function byName(n){n=n.trim().toLowerCase();for(var i=0;i<S.items.length;i++)if(S.items[i].name.toLowerCase()===n&&!S.items[i].gone)return S.items[i];return null}
+function live(){return S.items.filter(function(i){return !i.gone})}
+function byName(n){n=(n||"").trim().toLowerCase();var a=live();for(var i=0;i<a.length;i++)if(a[i].name.toLowerCase()===n)return a[i];return null}
 function newMove(o){o.id="m"+(S.nextId++);S.moves.push(o);return o}
 
-/* ---------- ledger replay: FIFO batches + weekly outflow ---------- */
+/* ---------- ledger replay + forecast ---------- */
 function replay(it){
   var ms=S.moves.filter(function(m){return m.item===it.id}).slice().sort(function(a,b){return a.date<b.date?-1:a.date>b.date?1:(+a.id.slice(1))-(+b.id.slice(1))});
-  var batches=[], onHand=0, weeks={}, zeroWeeks={};
-  function take(q){ // FIFO: earliest expiry first, undated last
-    batches.sort(function(a,b){return (a.exp||"9999")<(b.exp||"9999")?-1:(a.exp||"9999")>(b.exp||"9999")?1:0});
-    for(var i=0;i<batches.length&&q>0;i++){var t=Math.min(batches[i].q,q);batches[i].q-=t;q-=t}
-    batches=batches.filter(function(b){return b.q>1e-9});
-  }
-  ms.forEach(function(m){
-    var wk=monday(m.date);
-    if(m.qty>0){batches.push({q:m.qty,exp:m.expires||null,src:m.id})}
-    else take(-m.qty);
-    onHand+=m.qty;
-    var demand=(m.kind==="out"||(m.kind==="adjust"&&m.via==="count"&&m.qty<0))?-m.qty:0;
-    if(m.kind==="out"&&m.qty>0) demand=-m.qty; // reversal of an out
-    weeks[wk]=(weeks[wk]||0)+demand;
-    if(onHand<=0) zeroWeeks[wk]=1;
-  });
-  return {batches:batches,onHand:Math.max(0,round2(onHand)),weeks:weeks,zero:zeroWeeks,count:ms.length};
+  var batches=[],onHand=0,weeks={},zero={};
+  function take(q){batches.sort(function(a,b){return (a.exp||"9999")<(b.exp||"9999")?-1:(a.exp||"9999")>(b.exp||"9999")?1:0});
+    for(var i=0;i<batches.length&&q>0;i++){var t=Math.min(batches[i].q,q);batches[i].q-=t;q-=t}batches=batches.filter(function(b){return b.q>1e-9})}
+  ms.forEach(function(m){var wk=monday(m.date);if(m.qty>0)batches.push({q:m.qty,exp:m.expires||null});else take(-m.qty);onHand+=m.qty;
+    var dem=(m.kind==="out"||(m.kind==="adjust"&&m.qty<0))?-m.qty:0;weeks[wk]=(weeks[wk]||0)+dem;if(onHand<=0)zero[wk]=1});
+  return {batches:batches,onHand:Math.max(0,round2(onHand)),weeks:weeks,zero:zero,moves:ms};
 }
-function round2(x){return Math.round(x*100)/100}
-
-/* ---------- forecast (pure given replay) ---------- */
-var levelOrder={critical:0,low:1,ok:2,plenty:3,new:4};
+var ORDER={critical:0,low:1,ok:2,plenty:3,new:4};
 function forecast(it){
-  var R=replay(it), thisMon=monday(TODAY), hist=[], normal=[];
-  for(var w=10;w>=1;w--){var k=addD(thisMon,-7*w);var v=R.weeks[k]||0;hist.push({wk:k,v:v,zero:!!R.zero[k]});if(!R.zero[k])normal.push(v)}
-  var U=null;
-  if(normal.length>=4){U=normal[0];for(var i=1;i<normal.length;i++)U=0.3*normal[i]+0.7*U;U*=(+S.settings.season||1)}
-  var T=CATS[it.category]||3;
-  // usable stock: hard/perishable batches that expire before they'd be used don't count
-  var usable=0, used=0, expSoon=null, nextExp=null, expired=0;
+  var R=replay(it),thisMon=monday(TODAY),hist=[],normal=[];
+  for(var w=10;w>=1;w--){var k=addD(thisMon,-7*w),v=R.weeks[k]||0;hist.push({v:v,zero:!!R.zero[k]});if(!R.zero[k])normal.push(v)}
+  var U=null;if(normal.length>=4){U=normal[0];for(var i=1;i<normal.length;i++)U=.3*normal[i]+.7*U;U*=(+S.settings.season||1)}
+  var T=CATS[it.category]||3,usable=0,used=0,nextExp=null,expired=0,strict=it.policy==="hard"||it.policy==="perishable";
   R.batches.slice().sort(function(a,b){return (a.exp||"9999")<(b.exp||"9999")?-1:1}).forEach(function(b){
     if(b.exp&&(!nextExp||b.exp<nextExp))nextExp=b.exp;
-    var strict=it.policy==="hard"||it.policy==="perishable";
     if(b.exp&&daysTo(b.exp)<0&&strict){expired+=b.q;return}
-    var u=b.q;
-    if(strict&&b.exp&&U){var cap=Math.max(0,daysTo(b.exp)/7*U-used);u=Math.min(b.q,cap)}
-    usable+=u;used+=u;
-  });
+    var u=b.q;if(strict&&b.exp&&U){u=Math.min(b.q,Math.max(0,daysTo(b.exp)/7*U-used))}usable+=u;used+=u});
   usable=round2(usable);
   var level,cover=null,runOut=null,orderBy=null,need=0;
-  if(U&&U>0){
-    cover=usable/U;
-    level=cover<1?"critical":cover<T?"low":cover<3*T?"ok":"plenty";
-    runOut=addD(TODAY,Math.floor(cover*7));
-    orderBy=addD(runOut,-(+S.settings.lead||0));if(orderBy<TODAY)orderBy=TODAY;
-    need=Math.max(0,Math.ceil(T*U-usable));
-  } else {
-    var p=it.par||0; level=!p?"new":R.onHand<p*0.34?"critical":R.onHand<p?"low":R.onHand<p*3?"ok":"plenty";
-    need=Math.max(0,Math.ceil(p-R.onHand));
-  }
-  return {it:it,onHand:R.onHand,usable:usable,U:U,T:T,cover:cover,level:level,runOut:runOut,orderBy:orderBy,need:need,needLb:round2(need*(it.lb||0)),hist:hist,nextExp:nextExp,expired:expired,batches:R.batches};
+  if(U&&U>0){cover=usable/U;level=cover<1?"critical":cover<T?"low":cover<3*T?"ok":"plenty";runOut=addD(TODAY,Math.floor(cover*7));orderBy=addD(runOut,-(+S.settings.lead||0));if(orderBy<TODAY)orderBy=TODAY;need=Math.max(0,Math.ceil(T*U-usable))}
+  else{var p=it.par||0;level=!p?"new":R.onHand<p*.34?"critical":R.onHand<p?"low":R.onHand<p*3?"ok":"plenty";need=Math.max(0,Math.ceil(p-R.onHand))}
+  return {it:it,onHand:R.onHand,usable:usable,U:U,T:T,cover:cover,level:level,runOut:runOut,orderBy:orderBy,need:need,needLb:round2(need*(it.lb||0)),hist:hist,nextExp:nextExp,expired:expired,moves:R.moves};
 }
-function all(){return S.items.filter(function(i){return !i.gone}).map(forecast)}
+function all(){return live().map(forecast)}
+function sorted(F){return F.slice().sort(function(a,b){return ORDER[a.level]-ORDER[b.level]||(a.cover==null?99:a.cover)-(b.cover==null?99:b.cover)})}
+function snapshot(F){return {date:TODAY,items:sorted(F).filter(function(f){return f.level==="critical"||f.level==="low"}).map(function(f){return {name:f.it.name,category:f.it.category,level:f.level,need:f.need,unit:f.it.unit,lb:f.needLb,by:f.orderBy}})}}
 
-/* ---------- helpers ---------- */
-function el(t,a,c){var e=document.createElement(t);if(a)for(var k in a){if(k==="text")e.textContent=a[k];else if(k==="cls")e.className=a[k];else e.setAttribute(k,a[k])}(c||[]).forEach(function(x){e.appendChild(typeof x==="string"?document.createTextNode(x):x)});return e}
-function fmt(n,d){if(n==null||isNaN(n))return "—";return (+n).toLocaleString(undefined,{maximumFractionDigits:d==null?1:d})}
+/* ---------- small DOM helpers ---------- */
+function el(t,a,c){var e=document.createElement(t);if(a)for(var k in a){if(a[k]==null)continue;if(k==="text")e.textContent=a[k];else if(k==="cls")e.className=a[k];else if(k.slice(0,2)==="on")e.addEventListener(k.slice(2),a[k]);else e.setAttribute(k,a[k])}(c||[]).forEach(function(x){if(x!=null)e.appendChild(typeof x==="string"?document.createTextNode(x):x)});return e}
 function $(id){return document.getElementById(id)}
-var toastT;function toast(m){var t=$("toast");t.textContent=m;t.classList.add("on");clearTimeout(toastT);toastT=setTimeout(function(){t.classList.remove("on")},2200)}
-function pill(l){return el("span",{cls:"pill "+l,text:l==="new"?"no history":l})}
-function spark(h,U){
-  var w=96,hh=24,max=Math.max.apply(null,h.map(function(x){return x.v}).concat([U||0,1]));
-  var ns="http://www.w3.org/2000/svg",s=document.createElementNS(ns,"svg");s.setAttribute("viewBox","0 0 "+w+" "+hh);s.setAttribute("width",w);s.setAttribute("height",hh);s.setAttribute("aria-hidden","true");
-  var bw=w/h.length;
-  h.forEach(function(x,i){var r=document.createElementNS(ns,"rect"),bh=Math.max(1,x.v/max*(hh-3));r.setAttribute("x",i*bw+1);r.setAttribute("y",hh-bh);r.setAttribute("width",bw-2);r.setAttribute("height",bh);r.setAttribute("rx",1);r.setAttribute("fill",x.zero?"var(--crit)":"var(--line)");s.appendChild(r)});
-  if(U){var l=document.createElementNS(ns,"line"),y=hh-U/(S.settings.season||1)/max*(hh-3);l.setAttribute("x1",0);l.setAttribute("x2",w);l.setAttribute("y1",y);l.setAttribute("y2",y);l.setAttribute("stroke","var(--accent)");l.setAttribute("stroke-width","1.5");s.appendChild(l)}
-  return s;
+function pill(l){return el("span",{cls:"pill "+l,text:{new:"New item",critical:"Runs out this week",low:"Low",ok:"OK",plenty:"Plenty"}[l]})}
+var toastT,undoFn=null;
+function toast(msg,undo){$("toastmsg").textContent=msg;undoFn=undo||null;$("toastundo").hidden=!undo;var t=$("toast");t.classList.add("on");clearTimeout(toastT);toastT=setTimeout(function(){t.classList.remove("on");undoFn=null},undo?5000:2400)}
+$("toastundo").addEventListener("click",function(){if(undoFn){undoFn();undoFn=null}$("toast").classList.remove("on")});
+function reverse(ids,msg){ids.forEach(function(id){var m=S.moves.filter(function(x){return x.id===id})[0];if(m)newMove({item:m.item,kind:m.kind,qty:-m.qty,date:TODAY,expires:null,note:"",via:m.via,reverses:m.id})});commit();toast(msg||"Undone. Both entries stay in the log.")}
+function spark(h,w,hh){var max=Math.max.apply(null,h.map(function(x){return x.v}).concat([1])),ns="http://www.w3.org/2000/svg",s=document.createElementNS(ns,"svg");s.setAttribute("viewBox","0 0 "+w+" "+hh);s.setAttribute("width",w);s.setAttribute("height",hh);s.setAttribute("aria-hidden","true");
+  var bw=w/h.length;h.forEach(function(x,i){var r=document.createElementNS(ns,"rect"),bh=Math.max(1,x.v/max*(hh-2));r.setAttribute("x",i*bw+1);r.setAttribute("y",hh-bh);r.setAttribute("width",bw-2);r.setAttribute("height",bh);r.setAttribute("rx",1);r.setAttribute("fill",x.zero?"var(--crit)":"var(--kraft)");s.appendChild(r)});return s}
+function opts(list,v){return list.map(function(o){var e=el("option",{value:o,text:o});if(o===v)e.selected=true;return e})}
+function dlist(){var d=el("datalist",{id:"items-dl"});live().forEach(function(it){d.appendChild(el("option",{value:it.name}))});return d}
+
+/* ---------- views ---------- */
+var view="today",V=$("view"),shelfQ="",shelfCat="",picks={},selFc=null,countLoc=LOCS[0],rows=[];
+function go(v){view=v;document.querySelectorAll(".nav-b").forEach(function(b){if(b.dataset.v===v)b.setAttribute("aria-current","page");else b.removeAttribute("aria-current")});render()}
+document.querySelectorAll(".nav-b").forEach(function(b){b.addEventListener("click",function(){go(b.dataset.v)})});
+
+function vToday(F){
+  var crit=sorted(F).filter(function(f){return f.level==="critical"||f.level==="low"}),exp=F.filter(function(f){return f.nextExp&&daysTo(f.nextExp)<=30&&daysTo(f.nextExp)>=0}).sort(function(a,b){return a.nextExp<b.nextExp?-1:1});
+  var lbs=F.reduce(function(a,f){return a+f.onHand*(f.it.lb||0)},0);
+  V.appendChild(el("h3",{text:"Good morning"}));
+  V.appendChild(el("p",{cls:"hint",text:fmt(lbs,0)+" lb on the shelves across "+F.length+" items. "+(crit.filter(function(f){return f.level==="critical"}).length)+" run out this week."}));
+  var A=el("div",{cls:"actions"});
+  [["out","→","Give out","Tap items as they go in bags"],["in","←","Receive","A delivery, a drive, a drop-off"],["count","≡","Count a shelf","Type what's there; we log the difference"]].forEach(function(a){A.appendChild(el("button",{cls:"action",type:"button",onclick:function(){go(a[0])}},[el("i",{text:a[1],"aria-hidden":"true"}),el("b",{text:a[2]}),el("span",{text:a[3]})]))});
+  V.appendChild(A);
+  var two=el("div",{cls:"two"});
+  var c1=el("div",{cls:"card"},[el("h4",null,["Running low",el("small",{text:crit.length+" items"})])]),l1=el("ul",{cls:"list"});
+  crit.slice(0,7).forEach(function(f){l1.appendChild(el("li",null,[el("i",{cls:"dot "+f.level}),el("div",null,[el("div",{cls:"t",text:f.it.name}),el("div",{cls:"s",text:(f.runOut?"Runs out "+nice(f.runOut):"Below par")+" · need "+qtyText(f.need,f.it.unit)})]),el("button",{cls:"btn small",type:"button",text:"Open",onclick:function(){openItem(f.it.id)}})]))});
+  if(!crit.length)l1.appendChild(el("li",null,[el("span"),el("div",{cls:"s",text:"Nothing is running low."}),el("span")]));
+  c1.appendChild(l1);c1.appendChild(el("div",{style:"margin-top:10px"},[el("button",{cls:"btn small",type:"button",text:"Update the website list",onclick:function(){go("web")}})]));
+  var c2=el("div",{cls:"card"},[el("h4",null,["Use first",el("small",{text:"expiring within 30 days"})])]),l2=el("ul",{cls:"list"});
+  exp.slice(0,6).forEach(function(f){l2.appendChild(el("li",null,[el("i",{cls:"dot "+(f.it.policy==="hard"?"critical":"low")}),el("div",null,[el("div",{cls:"t",text:f.it.name}),el("div",{cls:"s",text:"Earliest batch "+(daysTo(f.nextExp)===0?"expires today":"expires "+nice(f.nextExp))+(f.it.policy==="hard"?" · use-by date":"")})]),el("span",{cls:"s mono",text:daysTo(f.nextExp)+"d"})]))});
+  if(!exp.length)l2.appendChild(el("li",null,[el("span"),el("div",{cls:"s",text:"Nothing expires in the next month."}),el("span")]));
+  c2.appendChild(l2);
+  var c3=el("div",{cls:"card",style:"grid-column:1/-1"},[el("h4",null,["Recent entries",el("small",{text:"append-only; undo adds a reversing entry"})])]);c3.appendChild(history(S.moves.slice(-6).reverse(),true));
+  two.appendChild(c1);two.appendChild(c2);two.appendChild(c3);V.appendChild(two);
+}
+function history(ms,showName){
+  var rev={};S.moves.forEach(function(m){if(m.reverses)rev[m.reverses]=1});
+  var ul=el("ul",{cls:"hist"});
+  ms.forEach(function(m){var it=item(m.item);if(!it)return;var lbl={receive:"in",out:"out",spoil:"spoiled",adjust:"count"}[m.kind]||m.kind;
+    var u=(!m.reverses&&!rev[m.id])?el("button",{cls:"btn small ghost",type:"button",text:"Undo",onclick:function(){reverse([m.id])}}):el("span");
+    ul.appendChild(el("li",null,[el("span",{cls:"k",text:nice(m.date)+" "+lbl}),el("span",{cls:rev[m.id]?"rev":"",text:(m.reverses?"undo · ":"")+(showName?it.name:"")+(m.note&&!showName?m.note:"")+(m.expires&&m.qty>0?" · exp "+nice(m.expires):"")}),el("span",{cls:"mono",text:(m.qty>0?"+":"")+fmt(m.qty)}),u]))});
+  if(!ul.children.length)ul.appendChild(el("li",null,[el("span"),el("span",{cls:"s",text:"No entries yet."})]));
+  return ul;
+}
+function vOut(F){
+  V.appendChild(el("h3",{text:"Give out"}));V.appendChild(el("p",{cls:"hint",text:"Tap an item once for each one that goes in a bag. Long lists are fine; nothing is saved until you press Log."}));
+  var cats=[""].concat(Object.keys(CATS)),ch=el("div",{cls:"chips"});
+  cats.forEach(function(c){ch.appendChild(el("button",{cls:"chip",type:"button","aria-pressed":String(shelfCat===c),text:c||"All",onclick:function(){shelfCat=c;render()}}))});V.appendChild(ch);
+  var g=el("div",{cls:"tiles"});
+  F.filter(function(f){return !shelfCat||f.it.category===shelfCat}).sort(function(a,b){return a.it.name<b.it.name?-1:1}).forEach(function(f){
+    var n=picks[f.it.id]||0,left=f.onHand-(f.expired||0);
+    var refocus=function(){var x=document.querySelector('.tile[data-id="'+f.it.id+'"]');if(x)x.focus()};
+    var t=el("button",{cls:"tile"+(n?" picked":""),type:"button","data-id":f.it.id,"aria-label":f.it.name+", "+n+" picked, "+fmt(left,0)+" on shelf",onclick:function(){if((picks[f.it.id]||0)+1>left){toast("Only "+fmt(left,0)+" "+f.it.name+" available.");return}picks[f.it.id]=(picks[f.it.id]||0)+1;render();refocus()},oncontextmenu:function(e){e.preventDefault();if(picks[f.it.id]){picks[f.it.id]--;render();refocus()}}},
+      [el("b",{text:f.it.name}),el("span",{text:fmt(left,0)+" on shelf"}),n?el("span",{cls:"n",text:String(n)}):null]);
+    g.appendChild(t)});
+  V.appendChild(g);
+  var total=Object.keys(picks).reduce(function(a,k){return a+picks[k]},0);
+  V.appendChild(el("div",{cls:"dock"},[el("div",{cls:"grow"},total?[el("b",{text:total+" item"+(total===1?"":"s")}),document.createTextNode(" picked across "+Object.keys(picks).filter(function(k){return picks[k]}).length+" kinds")]:["Tap tiles to pick. Right-click (or long-press) a tile to take one back."]),
+    el("button",{cls:"btn",type:"button",text:"Clear",disabled:total?null:"",onclick:function(){picks={};render()}}),
+    el("button",{cls:"btn primary",type:"button",text:"Log "+(total||"")+" given out",disabled:total?null:"",onclick:function(){var ids=[];Object.keys(picks).forEach(function(k){if(picks[k])ids.push(newMove({item:k,kind:"out",qty:-picks[k],date:TODAY,expires:null,note:"distribution",via:"tap"}).id)});picks={};commit();toast(total+" item"+(total===1?"":"s")+" logged as given out",function(){reverse(ids,"Distribution undone")})}})]));
+}
+function vIn(){
+  V.appendChild(el("h3",{text:"Receive"}));V.appendChild(el("p",{cls:"hint",text:"One row per item. Leave expiry blank if you can't read it; it's never guessed."}));
+  if(!rows.length)rows=[{name:"",qty:"",exp:""}];
+  var box=el("div",{cls:"rows"});box.appendChild(el("div",{cls:"rrow head"},[el("span",{text:"Item"}),el("span",{text:"Quantity"}),el("span",{text:"Expires"}),el("span")]));
+  rows.forEach(function(r,i){var it=byName(r.name);
+    var n=el("input",{value:r.name,list:"items-dl",placeholder:"Start typing…","aria-label":"Item","id":"rin-n-"+i,oninput:function(){r.name=n.value},onchange:function(){render();var x=$("rin-q-"+i);if(x)x.focus()}});
+    var q=el("input",{type:"number",min:"0",step:"any",value:r.qty,placeholder:it?it.unit:"qty","aria-label":"Quantity","id":"rin-q-"+i,oninput:function(){r.qty=q.value}});
+    var e=el("input",{type:"date",value:r.exp,"aria-label":"Expires","id":"rin-e-"+i,cls:"ex",oninput:function(){r.exp=e.value}});
+    var row=el("div",{cls:"rrow"},[n,q,e,el("button",{cls:"x",type:"button","aria-label":"Remove row",text:"✕",onclick:function(){rows.splice(i,1);render()}})]);
+    if(r.name&&!it)row.appendChild(el("div",{cls:"flag",text:"Not on the shelf list yet. It'll be added as a new item for a coordinator to check."}));
+    if(r.flag)row.appendChild(el("div",{cls:"flag",text:r.flag}));
+    box.appendChild(row)});
+  V.appendChild(box);V.appendChild(dlist());
+  V.appendChild(el("div",{cls:"row",style:"margin-top:12px"},[el("button",{cls:"btn",type:"button",text:"+ Add row",onclick:function(){rows.push({name:"",qty:"",exp:""});render();var x=$("rin-n-"+(rows.length-1));if(x)x.focus()}}),el("span",{style:"flex:1"}),
+    el("button",{cls:"btn primary",type:"button",text:"Save delivery",onclick:saveIn})]));
+  var p=el("details",{cls:"paste"},[el("summary",{text:"Paste a list instead"}),el("p",{cls:"hint",style:"margin:8px 0",text:"Write it the way you'd say it. It fills the rows above for you to check. The full app does this from a photo with Claude."})]);
+  var ta=el("textarea",{rows:"3","aria-label":"Donation list",id:"pastebox"});ta.value="2 cases tuna, 40 lb potatoes\na dozen cereal exp 3/27\n18 jars peanut butter";
+  p.appendChild(ta);p.appendChild(el("div",{style:"margin-top:8px"},[el("button",{cls:"btn small",type:"button",text:"Fill the rows",onclick:function(){parsePaste(ta.value)}})]));V.appendChild(p);
+}
+var WORDS={dozen:12,a:1,an:1,one:1,two:2,three:3,four:4,five:5,six:6,ten:10,twenty:20};
+function match(text){var t=text.toLowerCase().replace(/[^a-z ]/g," ").split(/\s+/).filter(Boolean).map(function(w){return w.replace(/(es|s)$/,"")}),best=null,bs=0;
+  live().forEach(function(it){var n=it.name.toLowerCase().replace(/[^a-z ]/g," ").split(/\s+/).filter(Boolean).map(function(w){return w.replace(/(es|s)$/,"")}),hit=n.filter(function(w){return t.indexOf(w)>=0}).length,sc=hit/n.length;if(sc>bs){bs=sc;best=it}});return bs>=.5?best:null}
+function parsePaste(txt){
+  var out=[];txt.split(/[\n,;]+/).map(function(s){return s.trim()}).filter(Boolean).forEach(function(line){
+    var m=line.match(/^(\d+(?:\.\d+)?|[a-z]+)\s+(?:(lbs?|pounds?|cases?|boxes?|bags?|jars?|cans?|packs?)\s+)?(?:of\s+)?(.+?)(?:\s+exp(?:ires)?\s+(\d{1,2})\/(\d{2,4}))?$/i);
+    if(!m){out.push({name:line,qty:"",exp:"",flag:"Couldn't read a quantity in “"+line+"”."});return}
+    var q=isNaN(+m[1])?(WORDS[m[1].toLowerCase()]||""):+m[1],u=(m[2]||"").toLowerCase(),it=match(m[3]),flag=null;
+    if(/^case/.test(u)&&q){q*=12;flag="Read “"+line+"” as "+q+" (12 per case). Check the case size."}
+    var exp="";if(m[4]){var yr=+m[5];if(yr<100)yr+=2000;exp=yr+"-"+pad(+m[4])+"-28"}
+    out.push({name:it?it.name:m[3],qty:q,exp:exp,flag:flag})});
+  rows=rows.filter(function(r){return r.name}).concat(out);render();toast(out.length+" rows filled. Check them, then save.");
+}
+function saveIn(){
+  var ids=[],n=0,bad=0;
+  rows.forEach(function(r){var q=+r.qty;if(!r.name.trim()||!(q>0)){if(r.name||r.qty)bad++;return}
+    var it=byName(r.name);if(!it){it={id:"i"+Date.now().toString(36)+n,name:r.name.trim(),category:"Protein",unit:"each",lb:null,location:LOCS[0],par:null,policy:"soft",shelfDays:0,review:true};S.items.push(it)}
+    ids.push(newMove({item:it.id,kind:"receive",qty:q,date:TODAY,expires:r.exp||(it.policy==="perishable"&&it.shelfDays?addD(TODAY,it.shelfDays):null),note:"delivery",via:"form"}).id);n++});
+  if(bad){toast(bad+" row"+(bad>1?"s need":" needs")+" an item and a quantity above zero.");return}
+  if(!n){toast("Add at least one item and quantity.");return}
+  rows=[];commit();toast(n+" item"+(n>1?"s":"")+" received",function(){reverse(ids,"Delivery undone")});
+}
+function vCount(F){
+  V.appendChild(el("h3",{text:"Count a shelf"}));V.appendChild(el("p",{cls:"hint",text:"Pick a shelf and type what's actually there. Anything different is logged as an adjustment; nothing is overwritten."}));
+  var ch=el("div",{cls:"chips"});LOCS.forEach(function(l){ch.appendChild(el("button",{cls:"chip",type:"button","aria-pressed":String(countLoc===l),text:l,onclick:function(){countLoc=l;render()}}))});V.appendChild(ch);
+  var list=F.filter(function(f){return f.it.location===countLoc}),ul=el("ul",{cls:"shelf count"});
+  ul.appendChild(el("li",{style:"background:var(--soft);font-size:12px;color:var(--muted);font-weight:600"},[el("span",{text:"Item"}),el("span",{style:"text-align:right",text:"Expected"}),el("span",{style:"text-align:right",text:"Counted"})]));
+  list.forEach(function(f,i){var inp=el("input",{type:"number",min:"0",step:"any",placeholder:fmt(f.onHand,0),"aria-label":"Counted "+f.it.name,id:"cnt-"+f.it.id});var d=el("div",{cls:"diff"});
+    inp.addEventListener("input",function(){if(inp.value===""){d.textContent="";return}var x=round2(+inp.value-f.onHand);d.textContent=x?(x>0?"+":"")+fmt(x):"matches";d.className="diff "+(x<0?"neg":x>0?"pos":"")});
+    ul.appendChild(el("li",null,[el("div",{cls:"open"},[el("b",{text:f.it.name}),el("span",{text:f.it.unit}),d]),el("span",{cls:"mono",style:"text-align:right",text:fmt(f.onHand)}),inp]))});
+  V.appendChild(ul);
+  V.appendChild(el("div",{cls:"row",style:"margin-top:12px;justify-content:flex-end"},[el("button",{cls:"btn primary",type:"button",text:"Save count",onclick:function(){var ids=[],n=0;list.forEach(function(f){var x=$("cnt-"+f.it.id);if(!x||x.value==="")return;var d=round2(+x.value-f.onHand);n++;if(d)ids.push(newMove({item:f.it.id,kind:"adjust",qty:d,date:TODAY,expires:null,note:"count",via:"count"}).id)});
+      if(!n){toast("Type a count for at least one item.");return}commit();toast(n+" counted, "+ids.length+" adjusted",ids.length?function(){reverse(ids,"Count undone")}:null)}})]));
+}
+function vShelf(F){
+  V.appendChild(el("h3",{text:"Shelf"}));V.appendChild(el("p",{cls:"hint",text:"Use − and + for one-offs at the door. Open an item to edit it or see its history."}));
+  var tl=el("div",{cls:"tools"}),q=el("input",{cls:"search",type:"search",placeholder:"Search items",value:shelfQ,"aria-label":"Search items",id:"shelfq",oninput:function(){shelfQ=q.value;render();var x=$("shelfq");x.focus();x.setSelectionRange(x.value.length,x.value.length)}});
+  tl.appendChild(q);tl.appendChild(el("span",{cls:"grow"}));tl.appendChild(el("button",{cls:"btn",type:"button",text:"+ New item",onclick:function(){var n=1;while(byName("New item "+n))n++;var it={id:"i"+Date.now().toString(36),name:"New item "+n,category:"Protein",unit:"each",lb:null,location:LOCS[0],par:null,policy:"soft",shelfDays:0};S.items.push(it);commit();openItem(it.id)}}));V.appendChild(tl);
+  var ch=el("div",{cls:"chips"});[""].concat(Object.keys(CATS)).forEach(function(c){ch.appendChild(el("button",{cls:"chip",type:"button","aria-pressed":String(shelfCat===c),text:c||"All",onclick:function(){shelfCat=c;render()}}))});V.appendChild(ch);
+  var ul=el("ul",{cls:"shelf"});
+  F.filter(function(f){return (!shelfCat||f.it.category===shelfCat)&&(!shelfQ||f.it.name.toLowerCase().indexOf(shelfQ.toLowerCase())>=0)}).sort(function(a,b){return a.it.name<b.it.name?-1:1}).forEach(function(f){
+    var soon=f.nextExp&&daysTo(f.nextExp)<=30;
+    ul.appendChild(el("li",null,[el("button",{cls:"open",type:"button",onclick:function(){openItem(f.it.id)}},[el("b",null,[f.it.name,f.level!=="ok"&&f.level!=="plenty"?pill(f.level):null]),el("span",{text:f.it.category+" · "+f.it.location+(f.it.lb?" · "+fmt(f.onHand*f.it.lb,0)+" lb":"")})]),
+      el("span",{cls:"exp"+(soon?" soon":""),text:f.nextExp?"exp "+nice(f.nextExp):""}),
+      el("div",{cls:"step"},[el("button",{type:"button","aria-label":"Give out one "+f.it.name,text:"−",onclick:function(){if(f.onHand<1){toast("None left to give out.");return}var m=newMove({item:f.it.id,kind:"out",qty:-1,date:TODAY,expires:null,note:"",via:"tap"});commit();toast("Gave out 1 "+f.it.name,function(){reverse([m.id],"Undone")})}}),
+        el("div",{cls:"q num"},[document.createTextNode(fmt(f.onHand,0)),el("small",{text:f.it.unit})]),
+        el("button",{type:"button","aria-label":"Receive one "+f.it.name,text:"+",onclick:function(){var m=newMove({item:f.it.id,kind:"receive",qty:1,date:TODAY,expires:null,note:"",via:"tap"});commit();toast("Received 1 "+f.it.name,function(){reverse([m.id],"Undone")})}})])]))});
+  if(!ul.children.length)ul.appendChild(el("li",null,[el("span",{cls:"s",text:"No items match."})]));
+  V.appendChild(ul);
+}
+function vFc(F){
+  V.appendChild(el("h3",{text:"Forecast"}));V.appendChild(el("p",{cls:"hint",text:"Each item's weekly use comes from the last ten weeks of what actually left, weighted toward recent weeks. Weeks the shelf was empty are skipped because they hide real demand."}));
+  var st=el("div",{cls:"settings"});
+  var s1=el("input",{type:"number",step:"0.05",min:"0.5",max:"3",value:S.settings.season,id:"season",onchange:function(){var v=+s1.value;S.settings.season=v>0?v:1;commit();toast("Forecast updated")}}),s2=el("input",{type:"number",step:"1",min:"0",max:"30",value:S.settings.lead,id:"lead",onchange:function(){var v=+s2.value;S.settings.lead=v>=0?v:7;commit();toast("Forecast updated")}});
+  st.appendChild(el("label",null,["Season ×",s1]));st.appendChild(el("label",null,["Delivery takes",s2,"days"]));V.appendChild(st);
+  var ul=el("ul",{cls:"fc",role:"listbox","aria-label":"Items by urgency"});
+  sorted(F).forEach(function(f){
+    var say=f.U?(f.level==="critical"||f.level==="low"?[el("b",{text:f.it.name}),document.createTextNode(" runs out "+nice(f.runOut)+". Order "+qtyText(f.need,f.it.unit)+(f.needLb?" ("+fmt(f.needLb,0)+" lb)":"")+" by "+nice(f.orderBy)+".")]:[el("b",{text:f.it.name}),document.createTextNode(" lasts about "+fmt(f.cover,0)+" weeks.")]):[el("b",{text:f.it.name}),document.createTextNode(" has too little history; compared against par.")];
+    say.push(el("span",{text:(f.U?fmt(f.U)+" "+plural(f.it.unit,2)+" a week":"no weekly rate yet")+" · "+fmt(f.usable,0)+" usable on hand"+(f.expired?" · "+fmt(f.expired,0)+" expired, not counted":"")}));
+    var li=el("li",{tabindex:"0",role:"option","aria-selected":String(selFc===f.it.id),onclick:function(){openItem(f.it.id)},onkeydown:function(e){if(e.key==="Enter"){openItem(f.it.id)}}},[el("i",{cls:"dot "+f.level}),el("div",{cls:"say"},say),spark(f.hist,110,26),pill(f.level)]);
+    ul.appendChild(li)});
+  V.appendChild(ul);
+}
+function vWeb(F){
+  var snap=snapshot(F),dirty=JSON.stringify(snap.items)!==JSON.stringify((S.published||{}).items);
+  V.appendChild(el("h3",{text:"Website list"}));V.appendChild(el("p",{cls:"hint",text:dirty?"The forecast has changed since the website was last updated.":"The website matches the forecast. Last updated "+nice(S.published.date)+"."}));
+  V.appendChild(el("div",{cls:"row",style:"margin-bottom:16px"},[el("button",{cls:"btn primary",type:"button",text:"Update website",onclick:function(){S.published=snap;commit();toast("Website updated");$("public").scrollIntoView({behavior:"smooth"})}}),
+    el("button",{cls:"btn",type:"button",text:"Copy as text",onclick:function(){copy(needsText(snap))}})]));
+  var b=el("div",{cls:"board"},[el("div",{cls:"board-h"},[el("b",{text:"Preview"}),el("span",{text:snap.items.length+" items"})])]),ul=el("ul",{cls:"needs"});boardRows(ul,snap);b.appendChild(ul);V.appendChild(b);
+}
+function vData(F){
+  V.appendChild(el("h3",{text:"Import / export"}));V.appendChild(el("p",{cls:"hint",text:"Your data is never locked in. Export is a spreadsheet-ready CSV with the forecast columns."}));
+  var two=el("div",{cls:"two"});
+  var ta=el("textarea",{rows:"9",readonly:"","aria-label":"CSV export",id:"csvout"});ta.value=exportCsv(F);
+  two.appendChild(el("div",{cls:"card"},[el("h4",{text:"Export"}),ta,el("div",{style:"margin-top:8px"},[el("button",{cls:"btn small",type:"button",text:"Copy CSV",onclick:function(){copy(ta.value)}})])]));
+  var ti=el("textarea",{rows:"6","aria-label":"CSV import",id:"csvin",placeholder:"name,category,unit,lb_per_unit,location,par,on_hand\nCanned soup,Vegetables,can,0.7,Shelf B,40,22"});
+  var fi=el("input",{type:"file",accept:".csv,text/csv",hidden:"",id:"csvfile",onchange:function(e){var f=e.target.files[0];if(!f)return;var r=new FileReader();r.onload=function(){ti.value=r.result;doImport(r.result)};r.readAsText(f);e.target.value=""}});
+  var ask=el("p",{hidden:"",style:"font-size:13px;margin:8px 0 0"},["Replace everything with the example data? ",el("button",{cls:"btn small",type:"button",text:"Yes, reset",onclick:function(){S=sample();S.published=snapshot(all());picks={};rows=[];commit();toast("Example data restored")}})]);
+  two.appendChild(el("div",{cls:"card"},[el("h4",{text:"Import a sheet"}),el("p",{cls:"hint",style:"margin:0 0 8px",text:"Columns: name, category, unit, lb_per_unit, location, par, on_hand. Matching names are counted; new ones are added."}),ti,fi,
+    el("div",{cls:"row",style:"margin-top:8px"},[el("button",{cls:"btn small primary",type:"button",text:"Import",onclick:function(){doImport(ti.value)}}),el("label",{cls:"btn small",for:"csvfile",style:"cursor:pointer",text:"Open file…"}),el("span",{style:"flex:1"}),el("button",{cls:"btn small ghost",type:"button",text:"Reset example data",onclick:function(){ask.hidden=false}})]),ask]));
+  V.appendChild(two);
+}
+function csvEsc(v){v=v==null?"":String(v);return /[",\n]/.test(v)?'"'+v.replace(/"/g,'""')+'"':v}
+function exportCsv(F){var r=[["name","category","unit","lb_per_unit","location","par","on_hand","on_hand_lb","weekly_use","weeks_cover","runs_out","order_by","need_qty","need_lb","status","next_expiry"]];
+  F.forEach(function(f){r.push([f.it.name,f.it.category,f.it.unit,f.it.lb,f.it.location,f.it.par,f.onHand,round2(f.onHand*(f.it.lb||0)),f.U?round2(f.U):"",f.cover!=null?round2(f.cover):"",f.runOut||"",f.orderBy||"",f.need,f.needLb,f.level,f.nextExp||""])});return r.map(function(x){return x.map(csvEsc).join(",")}).join("\n")}
+function parseCsv(t){var out=[],row=[],cur="",q=false;for(var i=0;i<t.length;i++){var c=t[i];if(q){if(c==='"'){if(t[i+1]==='"'){cur+='"';i++}else q=false}else cur+=c}else if(c==='"')q=true;else if(c===","){row.push(cur);cur=""}else if(c==="\n"||c==="\r"){if(c==="\r"&&t[i+1]==="\n")i++;row.push(cur);out.push(row);row=[];cur=""}else cur+=c}if(cur||row.length){row.push(cur);out.push(row)}return out.filter(function(r){return r.some(function(x){return x.trim()})})}
+function doImport(text){var rws=parseCsv(text);if(rws.length<2){toast("Need a header row and at least one item.");return}
+  var h=rws[0].map(function(x){return x.trim().toLowerCase()}),ix=function(n){return h.indexOf(n)};if(ix("name")<0){toast("The CSV needs a 'name' column.");return}
+  var added=0,counted=0;rws.slice(1).forEach(function(r){var g=function(n){var i=ix(n);return i<0?"":(r[i]||"").trim()},name=g("name");if(!name)return;var it=byName(name);
+    if(!it){it={id:"i"+Date.now().toString(36)+added,name:name,category:CATS[g("category")]?g("category"):"Protein",unit:UNITS.indexOf(g("unit"))>=0?g("unit"):"each",lb:+g("lb_per_unit")||null,location:LOCS.indexOf(g("location"))>=0?g("location"):LOCS[0],par:+g("par")||null,policy:/formula|baby/i.test(name)?"hard":"soft",shelfDays:0};S.items.push(it);added++}
+    if(g("on_hand")!==""){var d=round2(+g("on_hand")-replay(it).onHand);if(d&&!isNaN(d)){newMove({item:it.id,kind:"adjust",qty:d,date:TODAY,expires:null,note:"import",via:"import"});counted++}}});
+  commit();toast(added+" added, "+counted+" counted")}
+function needsText(P){return "We need (as of "+nice(P.date)+"):\n"+P.items.map(function(n){return "• "+n.name+": "+qtyText(n.need,n.unit)+(n.level==="critical"?" (urgent)":"")}).join("\n")}
+function copy(text){var ok=function(){toast("Copied")};try{navigator.clipboard.writeText(text).then(ok,function(){toast("Copy blocked here. Select the text and copy it.")})}catch(e){toast("Copy blocked here. Select the text and copy it.")}}
+
+/* ---------- item drawer ---------- */
+var openId=null,opener=null;
+function openItem(id){openId=id;opener=document.activeElement;drawItem();$("scrim").hidden=false;$("drawer").focus()}
+function closeItem(){$("scrim").hidden=true;openId=null;if(opener&&opener.focus)opener.focus()}
+$("scrim").addEventListener("click",function(e){if(e.target===$("scrim"))closeItem()});
+addEventListener("keydown",function(e){if(e.key==="Escape"&&!$("scrim").hidden)closeItem()});
+function drawItem(){
+  var it=item(openId),D=$("drawer");D.textContent="";if(!it||it.gone){closeItem();return}
+  var f=forecast(it);
+  D.appendChild(el("div",{cls:"dhead"},[el("div",null,[el("h3",{id:"dname",text:it.name}),el("div",{cls:"hint",style:"margin:2px 0 0",text:qtyText(f.onHand,it.unit)+" on hand"+(it.lb?" · "+fmt(f.onHand*it.lb,0)+" lb":"")})]),el("button",{cls:"btn small",type:"button",text:"Close",onclick:closeItem})]));
+  D.appendChild(el("div",{cls:"row"},[pill(f.level),el("span",{cls:"hint",style:"margin:0",text:f.runOut?"Runs out "+nice(f.runOut)+" · order by "+nice(f.orderBy):"Not enough history for a run-out date"})]));
+  D.appendChild(chart(f));
+  var fl=el("div",{cls:"fields"});
+  function inp(k,label,type,full){var i=el("input",{type:type||"text",value:it[k]==null?"":it[k],id:"f-"+k,onchange:function(){var v=type==="number"?(i.value===""?null:+i.value):i.value.trim();if(k==="name"&&!v){i.value=it.name;return}it[k]=v;commit();toast("Saved")}});if(type==="number"){i.step="any";i.min="0"}return el("label",{cls:"field"+(full?" full":"")},[label,i])}
+  function sel(k,label,list){var s=el("select",{id:"f-"+k,onchange:function(){it[k]=s.value;commit();toast("Saved")}},opts(list,it[k]));return el("label",{cls:"field"},[label,s])}
+  fl.appendChild(inp("name","Name","text",true));fl.appendChild(sel("category","Category",Object.keys(CATS)));fl.appendChild(sel("unit","Unit",UNITS));
+  fl.appendChild(sel("location","Where it lives",LOCS));fl.appendChild(inp("lb","Pounds per unit","number"));fl.appendChild(inp("par","Minimum to keep (par)","number"));
+  fl.appendChild(sel("policy","Date rule",["soft","perishable","hard"]));D.appendChild(fl);
+  D.appendChild(el("p",{cls:"hint",style:"margin:-4px 0 0;font-size:12.5px",text:"Soft: a best-by date. Perishable: expires after a set number of days. Hard: a use-by date (infant formula); expired stock can't go out."}));
+  D.appendChild(el("div",{cls:"sub",text:"History"}));D.appendChild(history(f.moves.slice(-12).reverse(),false));
+  D.appendChild(el("div",{style:"margin-top:18px"},[el("button",{cls:"btn small ghost",type:"button",text:"Remove from shelf list",onclick:function(){it.gone=true;commit();closeItem();toast(it.name+" removed",function(){it.gone=false;commit()})}})]));
+}
+function chart(f){
+  var ns="http://www.w3.org/2000/svg",W=390,H=140,L=28,B=18,Tp=8,fut=6,n=f.hist.length+fut,proj=[];for(var i=0;i<=fut;i++)proj.push(Math.max(0,f.usable-(f.U||0)*i));
+  var max=Math.max.apply(null,f.hist.map(function(h){return h.v}).concat(proj,[1])),p10=Math.pow(10,Math.floor(Math.log10(max)));max=Math.ceil(max/p10)*p10;
+  var s=document.createElementNS(ns,"svg");s.setAttribute("viewBox","0 0 "+W+" "+H);s.setAttribute("class","chart");s.setAttribute("width","100%");s.setAttribute("role","img");s.setAttribute("aria-label","Weekly use for ten weeks and projected stock for six weeks");s.style.margin="14px 0 4px";
+  function a(t,o,txt){var e=document.createElementNS(ns,t);for(var k in o)e.setAttribute(k,o[k]);if(txt!=null)e.textContent=txt;s.appendChild(e);return e}
+  var pw=(W-L-4)/n,y=function(v){return Tp+(H-Tp-B)*(1-v/max)};
+  [0,.5,1].forEach(function(g){a("line",{x1:L,x2:W-4,y1:y(max*g),y2:y(max*g),stroke:"var(--line)"});a("text",{x:L-4,y:y(max*g)+3,"text-anchor":"end"},fmt(max*g,0))});
+  f.hist.forEach(function(h,i){a("rect",{x:L+i*pw+2,y:y(h.v),width:pw-4,height:Math.max(0,(H-Tp-B)*h.v/max),rx:2,fill:h.zero?"var(--crit)":"var(--kraft)"})});
+  var x0=L+f.hist.length*pw;a("line",{x1:x0,x2:x0,y1:Tp,y2:H-B,stroke:"var(--muted)","stroke-dasharray":"2 3"});a("text",{x:x0+3,y:Tp+8},"today");
+  var pts=proj.map(function(v,i){return (x0+i*pw)+","+y(v)}).join(" ");
+  a("polygon",{points:x0+","+y(0)+" "+pts+" "+(x0+fut*pw)+","+y(0),fill:"var(--accent)",opacity:.14});a("polyline",{points:pts,fill:"none",stroke:"var(--accent)","stroke-width":2});
+  a("text",{x:L,y:H-4},"used each week");a("text",{x:W-4,y:H-4,"text-anchor":"end"},"stock ahead");return s;
 }
 
 /* ---------- public board ---------- */
-function snapshot(F){
-  return {date:TODAY,items:F.filter(function(f){return f.level==="critical"||f.level==="low"}).sort(function(a,b){return levelOrder[a.level]-levelOrder[b.level]||b.needLb-a.needLb}).map(function(f){return {name:f.it.name,category:f.it.category,level:f.level,need:f.need,unit:f.it.unit,lb:f.needLb,by:f.orderBy}})};
-}
-function renderBoard(){
-  var P=S.published, ul=$("needs");ul.textContent="";
-  if(!P){P=snapshot(all());}
-  $("pubdate").textContent="Updated "+nice(P.date);
-  if(!P.items.length){ul.appendChild(el("li",{cls:"thanks",text:"Shelves are full right now. Thank you!"}));$("pubwt").textContent="";return}
-  var tot=0;
-  P.items.slice(0,9).forEach(function(n){
-    tot+=n.lb||0;
-    var u=n.unit==="each"?"":" "+n.unit+(n.need===1||n.unit==="lb"?"":(n.unit==="box"?"es":"s"));
-    ul.appendChild(el("li",null,[el("i",{cls:"dot "+n.level,"aria-label":n.level}),el("span",{cls:"nm",text:n.name}),el("span",{cls:"amt"},[el("b",{text:fmt(n.need,0)+u})]),el("span",{cls:"cat",text:n.category}),el("span",{cls:"amt",text:n.by?(n.by===P.date?"needed now":"by "+nice(n.by)):""})]));
-  });
-  $("pubwt").textContent="About "+fmt(tot,0)+" lbs in all";
-}
+function boardRows(ul,P){ul.textContent="";if(!P.items.length){ul.appendChild(el("li",null,[el("span"),el("span",{cls:"nm",text:"Shelves are full right now. Thank you!"}),el("span")]));return}
+  P.items.slice(0,9).forEach(function(n){ul.appendChild(el("li",null,[el("i",{cls:"dot "+n.level}),el("span",{cls:"nm",text:n.name}),el("span",{cls:"amt"},[el("b",{text:qtyText(n.need,n.unit)})]),el("span",{cls:"cat",text:n.category}),el("span",{cls:"amt",text:n.by?(n.by===P.date?"needed now":"by "+nice(n.by)):""})]))})}
+function renderBoard(){var P=S.published||snapshot(all());$("pubdate").textContent="Updated "+nice(P.date);boardRows($("needs"),P);var t=P.items.reduce(function(a,n){return a+(n.lb||0)},0);$("pubf").textContent=(P.items.length?"About "+fmt(t,0)+" lb in all · ":"")+"Drop-off Tuesdays 4–7 pm and Saturdays 9–noon. Unopened and in date, please."}
 
-/* ---------- tiles ---------- */
-function renderTiles(F){
-  var crit=F.filter(function(f){return f.level==="critical"}).length, low=F.filter(function(f){return f.level==="low"}).length;
-  var lbs=F.reduce(function(a,f){return a+f.onHand*(f.it.lb||0)},0), need=F.reduce(function(a,f){return a+((f.level==="critical"||f.level==="low")?f.needLb:0)},0);
-  var exp=F.filter(function(f){return f.nextExp&&daysTo(f.nextExp)<=30}).length;
-  var t=$("tiles");t.textContent="";
-  [["Running out this week",crit,low+" more running low","crit"],["On the shelves",fmt(lbs,0)+" lb",F.length+" items",""],["Shortfall to target",fmt(need,0)+" lb","to reach each category's weeks of cover",""],["Expiring within 30 days",exp,exp===1?"item to use first":"items to use first",""]].forEach(function(x){
-    t.appendChild(el("div",{cls:"tile "+x[3]},[el("div",{cls:"k",text:x[0]}),el("div",{cls:"v num",text:String(x[1])}),el("div",{cls:"s",text:x[2]})]));
-  });
-  var dirty=JSON.stringify(snapshot(F).items)!==JSON.stringify((S.published||{}).items);
-  $("pubstate").textContent=S.published?(dirty?"The website is out of date":"Website is current · "+nice(S.published.date)):"Not published yet";
+/* ---------- render ---------- */
+function render(){
+  var F=all();V.textContent="";
+  ({today:vToday,out:vOut,"in":vIn,count:vCount,shelf:vShelf,fc:vFc,web:vWeb,data:vData}[view])(F);
+  var c=F.filter(function(f){return f.level==="critical"}).length,b=$("critn");b.hidden=!c;b.textContent=c;
+  renderBoard();if(openId&&!$("scrim").hidden)drawItem();
 }
-
-/* ---------- sheet ---------- */
-function opts(sel,list,v){list.forEach(function(o){var e=el("option",{value:o,text:o});if(o===v)e.selected=true;sel.appendChild(e)})}
-function renderSheet(F){
-  var q=$("q").value.trim().toLowerCase(), c=$("fcat").value, tb=$("sheet").tBodies[0];tb.textContent="";
-  F.filter(function(f){return (!q||f.it.name.toLowerCase().indexOf(q)>=0)&&(!c||f.it.category===c)}).forEach(function(f){
-    var it=f.it,tr=el("tr");
-    function inp(field,type,cls){var i=el("input",{cls:"cell",type:type||"text",value:it[field]==null?"":it[field],"aria-label":field+" for "+it.name,id:"c-"+it.id+"-"+field});if(type==="number"){i.step="any";i.min="0"}
-      i.addEventListener("change",function(){var v=type==="number"?(i.value===""?null:+i.value):i.value.trim();if(field==="name"&&!v){i.value=it.name;return}it[field]=v;commit("Saved")});return el("td",{cls:cls||""},[i])}
-    function sel(field,list){var s=el("select",{cls:"cell","aria-label":field+" for "+it.name,id:"c-"+it.id+"-"+field});opts(s,list,it[field]);s.addEventListener("change",function(){it[field]=s.value;commit("Saved")});return el("td",null,[s])}
-    tr.appendChild(inp("name"));tr.appendChild(sel("category",Object.keys(CATS)));tr.appendChild(sel("unit",UNITS));
-    tr.appendChild(inp("lb","number","r"));tr.appendChild(sel("location",LOCS));
-    var oh=el("input",{cls:"cell num",type:"number",step:"any",min:"0",value:f.onHand,"aria-label":"On hand for "+it.name,id:"c-"+it.id+"-oh"});
-    oh.addEventListener("change",function(){var v=+oh.value;if(isNaN(v)||v<0){oh.value=f.onHand;return}var d=round2(v-f.onHand);if(d){newMove({item:it.id,kind:"adjust",qty:d,date:TODAY,expires:null,note:"count",via:"count"});commit("Count recorded: "+(d>0?"+":"")+fmt(d))}});
-    tr.appendChild(el("td",{cls:"r"},[oh]));
-    tr.appendChild(el("td",{cls:"ro r num",text:fmt(f.onHand*(it.lb||0),0)}));
-    tr.appendChild(inp("par","number","r"));
-    var ex=el("td",{cls:"ro num"},[el("span",{cls:f.nextExp&&daysTo(f.nextExp)<=30?"exp-soon":"",text:nice(f.nextExp)})]);
-    if(f.expired) ex.appendChild(el("span",{cls:"flag",text:" · "+fmt(f.expired)+" expired"}));
-    tr.appendChild(ex);
-    tr.appendChild(el("td",{cls:"ro"},[pill(f.level)]));
-    var del=el("button",{cls:"btn small ghost",type:"button","aria-label":"Remove "+it.name,text:"Remove"});
-    del.addEventListener("click",function(){it.gone=true;commit(it.name+" removed from the sheet")});
-    tr.appendChild(el("td",{cls:"ro"},[del]));
-    tb.appendChild(tr);
-  });
-}
-
-/* ---------- forecast tab ---------- */
-var selected=null;
-function renderFc(F){
-  var tb=$("fctable").tBodies[0];tb.textContent="";
-  var rows=F.slice().sort(function(a,b){return levelOrder[a.level]-levelOrder[b.level]||(a.cover||0)-(b.cover||0)});
-  if(!selected||!item(selected)||item(selected).gone)selected=rows.length?rows[0].it.id:null;
-  rows.forEach(function(f){
-    var tr=el("tr",{cls:"click"+(f.it.id===selected?" sel":""),tabindex:"0"});
-    function td(t,c){tr.appendChild(el("td",{cls:"ro "+(c||""),text:t}))}
-    td(f.it.name);
-    var sp=el("td",{cls:"ro"});sp.appendChild(spark(f.hist,f.U));tr.appendChild(sp);
-    td(f.U?fmt(f.U):"—","r num");td(fmt(f.usable),"r num");td(f.cover!=null?fmt(f.cover)+" wk":"—","r num");
-    td(nice(f.runOut),"num");td(nice(f.orderBy),"num");
-    td(f.need?fmt(f.need,0)+" "+f.it.unit:"—","r num");td(f.need?fmt(f.needLb,0):"—","r num");
-    var p=el("td",{cls:"ro"});p.appendChild(pill(f.level));tr.appendChild(p);
-    function pick(){selected=f.it.id;renderFc(all())}
-    tr.addEventListener("click",pick);tr.addEventListener("keydown",function(e){if(e.key==="Enter"||e.key===" "){e.preventDefault();pick()}});
-    tb.appendChild(tr);
-  });
-  var f=F.filter(function(x){return x.it.id===selected})[0], d=$("detail");d.textContent="";
-  if(!f)return;
-  d.appendChild(el("h3",{text:f.it.name}));
-  d.appendChild(el("div",{cls:"sub",text:f.it.category+" · target "+f.T+" weeks of cover · "+f.it.policy+" dates"}));
-  d.appendChild(chart(f));
-  var dl=el("dl");
-  [["On hand",fmt(f.onHand)+" "+f.it.unit],["Usable before expiry",fmt(f.usable)],["Weekly use",f.U?fmt(f.U)+" / wk":"under 4 weeks of history"],["Weeks of cover",f.cover!=null?fmt(f.cover):"—"],["Runs out",nice(f.runOut)],["Order by",nice(f.orderBy)],["Need for "+f.T+" wk",fmt(f.need,0)+" "+f.it.unit+" · "+fmt(f.needLb,0)+" lb"],["Batches",String(f.batches.length)]].forEach(function(x){dl.appendChild(el("dt",{text:x[0]}));dl.appendChild(el("dd",{text:x[1]}))});
-  d.appendChild(dl);
-}
-function chart(f){
-  // weekly use bars (past 10 weeks) + projected on-hand line for the next 6 weeks
-  var ns="http://www.w3.org/2000/svg",W=310,H=150,L=30,B=20,Tp=10,fut=6,n=f.hist.length+fut;
-  var proj=[];for(var i=0;i<=fut;i++)proj.push(Math.max(0,f.usable-(f.U||0)*i));
-  var max=Math.max.apply(null,f.hist.map(function(h){return h.v}).concat(proj,[1]));
-  var nice2=Math.pow(10,Math.floor(Math.log10(max)));max=Math.ceil(max/nice2)*nice2;
-  var s=document.createElementNS(ns,"svg");s.setAttribute("viewBox","0 0 "+W+" "+H);s.setAttribute("class","chart");s.setAttribute("width","100%");s.setAttribute("role","img");s.setAttribute("aria-label","Weekly use and projected stock for "+f.it.name);
-  function a(t,o){var e=document.createElementNS(ns,t);for(var k in o)e.setAttribute(k,o[k]);s.appendChild(e);return e}
-  var pw=(W-L-6)/n, y=function(v){return Tp+(H-Tp-B)*(1-v/max)};
-  [0,0.5,1].forEach(function(g){var v=max*g;a("line",{x1:L,x2:W-6,y1:y(v),y2:y(v),stroke:"var(--line)","stroke-width":1});var t=a("text",{x:L-5,y:y(v)+3,"text-anchor":"end"});t.textContent=fmt(v,0)});
-  f.hist.forEach(function(h,i){var bh=(H-Tp-B)*h.v/max;a("rect",{x:L+i*pw+2,y:y(h.v),width:pw-4,height:Math.max(0,bh),rx:2,fill:h.zero?"var(--crit)":"var(--kraft)",opacity:.85})});
-  var x0=L+f.hist.length*pw;
-  a("line",{x1:x0,x2:x0,y1:Tp,y2:H-B,stroke:"var(--muted)","stroke-dasharray":"2 3"});
-  var t1=a("text",{x:x0+3,y:Tp+8});t1.textContent="today";
-  var pts=proj.map(function(v,i){return (x0+i*pw)+","+y(v)}).join(" ");
-  a("polygon",{points:x0+","+y(0)+" "+pts+" "+(x0+fut*pw)+","+y(0),fill:"var(--accent)",opacity:.12});
-  a("polyline",{points:pts,fill:"none",stroke:"var(--accent)","stroke-width":2});
-  a("circle",{cx:x0,cy:y(proj[0]),r:3,fill:"var(--accent)"});
-  var tl=a("text",{x:L,y:H-6});tl.textContent="use / week, 10 wk";
-  var tr=a("text",{x:W-6,y:H-6,"text-anchor":"end"});tr.textContent="stock, next 6 wk";
-  return s;
-}
-
-/* ---------- log tab ---------- */
-var kind="receive";
-document.querySelectorAll("#kindseg button").forEach(function(b){b.addEventListener("click",function(){kind=b.dataset.k;document.querySelectorAll("#kindseg button").forEach(function(x){x.setAttribute("aria-pressed",String(x===b))});$("expwrap").hidden=kind!=="receive"})});
-$("mvdate").value=TODAY;
-$("mvform").addEventListener("submit",function(e){
-  e.preventDefault();
-  var it=byName($("mvitem").value), q=+$("mvqty").value;
-  if(!it){toast("No item called that. Add it on the Sheet first.");return}
-  if(!(q>0)){toast("Enter a quantity above zero.");return}
-  if(kind!=="receive"){var f=forecast(it);if(q>f.onHand+1e-9){toast("Only "+fmt(f.onHand)+" on hand. Log a count if the sheet is wrong.");return}
-    if(it.policy==="hard"&&f.expired>0&&q>f.onHand-f.expired&&kind==="out"){toast("Expired "+it.name+" can't be given out. Log it as spoiled.");return}}
-  newMove({item:it.id,kind:kind,qty:kind==="receive"?q:-q,date:$("mvdate").value||TODAY,expires:kind==="receive"&&$("mvexp").value?$("mvexp").value:(kind==="receive"?defExp(it,$("mvdate").value||TODAY):null),note:$("mvnote").value.trim(),via:"form"});
-  $("mvqty").value="";$("mvnote").value="";$("mvexp").value="";
-  commit((kind==="receive"?"Received ":kind==="out"?"Gave out ":"Spoiled ")+fmt(q)+" "+it.name);
-});
-function defExp(it,d){return it.policy==="perishable"&&it.shelfDays?addD(d,it.shelfDays):null}
-function renderMoves(){
-  var ul=$("moves");ul.textContent="";
-  var reversed={};S.moves.forEach(function(m){if(m.reverses)reversed[m.reverses]=1});
-  S.moves.slice(-14).reverse().forEach(function(m){
-    var it=item(m.item);if(!it)return;
-    var lbl={receive:"in",out:"out",spoil:"spoil",adjust:"count"}[m.kind]||m.kind;
-    var name=el("span",{cls:reversed[m.id]?"rev":"",text:(m.reverses?"undo · ":"")+it.name+(m.note&&m.note!=="count"?" · "+m.note:"")});
-    var btn=el("span");
-    if(!m.reverses&&!reversed[m.id]){var b=el("button",{cls:"btn small ghost",type:"button",text:"Undo"});b.addEventListener("click",function(){newMove({item:m.item,kind:m.kind,qty:-m.qty,date:TODAY,expires:null,note:"",via:m.via,reverses:m.id});commit("Reversed. Both entries stay in the log.")});btn.appendChild(b)}
-    ul.appendChild(el("li",null,[el("span",{cls:"k",text:nice(m.date)+" "+lbl}),name,el("span",{cls:"q num",text:(m.qty>0?"+":"")+fmt(m.qty)}),btn]));
-  });
-}
-
-/* paste-a-list draft */
-var WORDS={dozen:12,a:1,an:1,one:1,two:2,three:3,four:4,five:5,six:6,seven:7,eight:8,nine:9,ten:10,twenty:20};
-function match(text){
-  var t=text.toLowerCase().replace(/[^a-z ]/g," ").split(/\s+/).filter(Boolean).map(function(w){return w.replace(/(es|s)$/,"")});
-  var best=null,bs=0;
-  S.items.forEach(function(it){if(it.gone)return;var n=it.name.toLowerCase().replace(/[^a-z ]/g," ").split(/\s+/).filter(Boolean).map(function(w){return w.replace(/(es|s)$/,"")});
-    var hit=n.filter(function(w){return t.indexOf(w)>=0}).length, sc=hit/n.length+hit*0.01;if(sc>bs){bs=sc;best=it}});
-  return {it:bs>=0.5?best:null,conf:bs>=0.99?"high":bs>=0.5?"low":"none"};
-}
-var draft=[];
-$("parse").addEventListener("click",function(){
-  draft=[];
-  $("paste").value.split(/[\n,;]+/).map(function(s){return s.trim()}).filter(Boolean).forEach(function(line){
-    var m=line.match(/^(\d+(?:\.\d+)?|[a-z]+)\s+(?:(lbs?|pounds?|cases?|boxes?|bags?|jars?|cans?|packs?)\s+)?(?:of\s+)?(.+?)(?:\s+exp(?:ires)?\s+(\d{1,2})\/(\d{2,4}))?$/i);
-    if(!m){draft.push({line:line,it:null,qty:0,exp:null,conf:"none"});return}
-    var q=isNaN(+m[1])?(WORDS[m[1].toLowerCase()]||0):+m[1], u=(m[2]||"").toLowerCase(), mm=match(m[3]);
-    if(/^case/.test(u))q*=12; // a case is 12 units unless the item says otherwise
-    var exp=null;if(m[4]){var yr=+m[5];if(yr<100)yr+=2000;exp=yr+"-"+pad(+m[4])+"-28"}
-    draft.push({line:line,it:mm.it,qty:q,exp:exp,conf:q?mm.conf:"low",unit:u});
-  });
-  renderDraft();
-});
-function renderDraft(){
-  var box=$("draft");box.textContent="";if(!draft.length)return;
-  var t=el("table",{cls:"draft"}),tb=el("tbody");
-  t.appendChild(el("thead",null,[el("tr",null,[el("th",{text:"You wrote"}),el("th",{text:"Item"}),el("th",{cls:"r",text:"Qty"}),el("th",{text:"Expires"})])]));
-  draft.forEach(function(d,i){
-    var s=el("select",{cls:"cell","aria-label":"Item for "+d.line,id:"dr-it-"+i});s.appendChild(el("option",{value:"",text:"— choose —"}));
-    S.items.forEach(function(it){if(it.gone)return;var o=el("option",{value:it.id,text:it.name});if(d.it&&d.it.id===it.id)o.selected=true;s.appendChild(o)});
-    s.addEventListener("change",function(){d.it=item(s.value);d.conf="high"});
-    var q=el("input",{cls:"cell num",type:"number",min:"0",step:"any",value:d.qty,"aria-label":"Quantity for "+d.line,id:"dr-q-"+i});q.addEventListener("change",function(){d.qty=+q.value});
-    var line=el("td",{cls:"ro",text:d.line});if(d.conf!=="high")line.appendChild(el("div",{cls:"flag",text:d.it?"check the match":"no match, pick one"}));
-    tb.appendChild(el("tr",null,[line,el("td",null,[s]),el("td",{cls:"r"},[q]),el("td",{cls:"ro num",text:d.exp?nice(d.exp):"blank, not guessed"})]));
-  });
-  t.appendChild(tb);
-  var wrap=el("div",{cls:"scroll",style:"margin-top:12px"},[t]);box.appendChild(wrap);
-  var ok=el("button",{cls:"btn primary",type:"button",text:"Confirm and save",style:"margin-top:10px"});
-  ok.addEventListener("click",function(){var n=0;draft.forEach(function(d){if(d.it&&d.qty>0){newMove({item:d.it.id,kind:"receive",qty:d.qty,date:TODAY,expires:d.exp||defExp(d.it,TODAY),note:"pasted list",via:"ai_text"});n++}});draft=[];box.textContent="";commit(n+" entr"+(n===1?"y":"ies")+" saved")});
-  box.appendChild(ok);
-}
-
-/* ---------- import / export ---------- */
-function csvEsc(v){v=v==null?"":String(v);return /[",\n]/.test(v)?'"'+v.replace(/"/g,'""')+'"':v}
-function exportCsv(F){
-  var rows=[["name","category","unit","lb_per_unit","location","par","on_hand","on_hand_lb","weekly_use","weeks_cover","runs_out","order_by","need_qty","need_lb","status","next_expiry"]];
-  F.forEach(function(f){rows.push([f.it.name,f.it.category,f.it.unit,f.it.lb,f.it.location,f.it.par,f.onHand,round2(f.onHand*(f.it.lb||0)),f.U?round2(f.U):"",f.cover!=null?round2(f.cover):"",f.runOut||"",f.orderBy||"",f.need,f.needLb,f.level,f.nextExp||""])});
-  return rows.map(function(r){return r.map(csvEsc).join(",")}).join("\n");
-}
-function needsText(){var P=snapshot(all());return "We need (as of "+nice(P.date)+"):\n"+P.items.map(function(n){return "• "+n.name+" — "+fmt(n.need,0)+" "+n.unit+(n.level==="critical"?" (urgent)":"")}).join("\n")}
-function copy(text,btn){var done=function(){toast("Copied")};try{navigator.clipboard.writeText(text).then(done,function(){fallback()})}catch(e){fallback()}
-  function fallback(){var ta=$("csvout");ta.value=text;ta.focus();ta.select();toast("Selected. Press Ctrl/Cmd+C to copy.")}}
-$("copycsv").addEventListener("click",function(){copy($("csvout").value)});
-$("copyneeds").addEventListener("click",function(){copy(needsText())});
-function parseCsv(t){var out=[],row=[],cur="",q=false;for(var i=0;i<t.length;i++){var c=t[i];if(q){if(c==='"'){if(t[i+1]==='"'){cur+='"';i++}else q=false}else cur+=c}else if(c==='"')q=true;else if(c===","){row.push(cur);cur=""}else if(c==="\n"||c==="\r"){if(c==="\r"&&t[i+1]==="\n")i++;row.push(cur);out.push(row);row=[];cur=""}else cur+=c}if(cur||row.length){row.push(cur);out.push(row)}return out.filter(function(r){return r.some(function(x){return x.trim()})})}
-function doImport(text){
-  var rows=parseCsv(text);if(rows.length<2){toast("Need a header row and at least one item.");return}
-  var h=rows[0].map(function(x){return x.trim().toLowerCase()}),ix=function(n){return h.indexOf(n)};
-  if(ix("name")<0){toast("The CSV needs a 'name' column.");return}
-  var added=0,counted=0;
-  rows.slice(1).forEach(function(r){
-    var g=function(n){var i=ix(n);return i<0?"":(r[i]||"").trim()},name=g("name");if(!name)return;
-    var it=byName(name);
-    if(!it){it={id:"i"+Date.now().toString(36)+added,name:name,category:CATS[g("category")]?g("category"):"Protein",unit:UNITS.indexOf(g("unit"))>=0?g("unit"):"each",lb:+g("lb_per_unit")||null,location:LOCS.indexOf(g("location"))>=0?g("location"):LOCS[0],par:+g("par")||null,policy:/formula|baby/i.test(name)?"hard":"soft",shelfDays:0};S.items.push(it);added++}
-    else{if(g("par"))it.par=+g("par");if(g("lb_per_unit"))it.lb=+g("lb_per_unit")}
-    if(g("on_hand")!==""){var cur=replay(it).onHand,d=round2(+g("on_hand")-cur);if(d&&!isNaN(d)){newMove({item:it.id,kind:"adjust",qty:d,date:TODAY,expires:null,note:"import",via:"import"});counted++}}
-  });
-  commit(added+" added, "+counted+" counted");
-}
-$("doimport").addEventListener("click",function(){doImport($("csvin").value)});
-$("csvfile").addEventListener("change",function(e){var f=e.target.files[0];if(!f)return;var r=new FileReader();r.onload=function(){$("csvin").value=r.result;doImport(r.result)};r.readAsText(f);e.target.value=""});
-$("reset").addEventListener("click",function(){$("resetask").hidden=false});
-$("resetno").addEventListener("click",function(){$("resetask").hidden=true});
-$("resetyes").addEventListener("click",function(){S=sample();S.published=snapshot(all());$("resetask").hidden=true;commit("Example data restored")});
-
-/* ---------- sheet controls ---------- */
-var fc=$("fcat");fc.appendChild(el("option",{value:"",text:"All categories"}));Object.keys(CATS).forEach(function(c){fc.appendChild(el("option",{value:c,text:c}))});
-$("q").addEventListener("input",function(){renderSheet(all())});fc.addEventListener("change",function(){renderSheet(all())});
-$("addrow").addEventListener("click",function(){var n=1;while(byName("New item "+n))n++;var it={id:"i"+Date.now().toString(36),name:"New item "+n,category:"Protein",unit:"each",lb:null,location:LOCS[0],par:null,policy:"soft",shelfDays:0};S.items.push(it);$("q").value="";fc.value="";commit("Item added");var e=$("c-"+it.id+"-name");if(e){e.focus();e.select()}});
-$("season").value=S.settings.season;$("lead").value=S.settings.lead;
-$("season").addEventListener("change",function(){var v=+$("season").value;S.settings.season=v>0?v:1;commit("Forecast updated")});
-$("lead").addEventListener("change",function(){var v=+$("lead").value;S.settings.lead=v>=0?v:7;commit("Forecast updated")});
-$("publish").addEventListener("click",function(){S.published=snapshot(all());save();renderAll();toast("Website updated");document.getElementById("need").scrollIntoView({behavior:"smooth"})});
-
-/* tabs */
-var tabs=document.querySelectorAll('[role=tab]');
-tabs.forEach(function(t){t.addEventListener("click",function(){tabs.forEach(function(x){var on=x===t;x.setAttribute("aria-selected",String(on));$(x.getAttribute("aria-controls")).hidden=!on});try{localStorage.setItem(KEY+".tab",t.id)}catch(e){}})});
-try{var tt=localStorage.getItem(KEY+".tab");if(tt&&$(tt))$(tt).click()}catch(e){}
-
-function renderAll(){
-  var F=all();
-  renderTiles(F);renderSheet(F);renderFc(F);renderMoves();renderBoard();
-  $("csvout").value=exportCsv(F);
-  var dl=$("itemlist");dl.textContent="";S.items.forEach(function(it){if(!it.gone)dl.appendChild(el("option",{value:it.name}))});
-}
-function commit(msg){save();renderAll();if(msg)toast(msg)}
+function commit(){save();render()}
 if(!S.published){S.published=snapshot(all());save()}
-renderAll();
+var start="today";try{var h=(location.hash||"").slice(1);if(["out","in","count","shelf","fc","web"].indexOf(h)>=0)start=h}catch(e){}
+go(start);
 })();
 </script>
 </body>
