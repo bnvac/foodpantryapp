@@ -1,0 +1,699 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Pantry</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Young+Serif&family=Figtree:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+/* Layout: public "what we need" board on top (what the website shows), the volunteer stockroom app below it. */
+:root{
+  --bg:#f6f7f4; --surface:#ffffff; --fg:#17201b; --muted:#5f6b63; --line:#dfe4dd; --soft:#eef1ec;
+  --accent:#2f6b4f; --accent-fg:#ffffff; --kraft:#c9a46a;
+  --crit:#c2412d; --low:#c98a12; --ok:#3d7f5f; --plenty:#6c8fb3;
+  --crit-bg:#fbe9e5; --low-bg:#fbf1dc; --ok-bg:#e5f1ea; --plenty-bg:#e7eef6;
+  --display:"Young Serif", Georgia, serif; --body:"Figtree", system-ui, sans-serif; --mono:"IBM Plex Mono", ui-monospace, monospace;
+  color-scheme:light;
+}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
+  --bg:#0f1411; --surface:#161c18; --fg:#e6ebe6; --muted:#93a097; --line:#26302a; --soft:#1b231e;
+  --accent:#7cc19d; --accent-fg:#0f1411; --kraft:#d7b57d;
+  --crit:#ff8a75; --low:#f2b84b; --ok:#7cc19d; --plenty:#9dbbe0;
+  --crit-bg:#3a1d17; --low-bg:#352a12; --ok-bg:#183024; --plenty-bg:#1a2633; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#0f1411; --surface:#161c18; --fg:#e6ebe6; --muted:#93a097; --line:#26302a; --soft:#1b231e;
+  --accent:#7cc19d; --accent-fg:#0f1411; --kraft:#d7b57d;
+  --crit:#ff8a75; --low:#f2b84b; --ok:#7cc19d; --plenty:#9dbbe0;
+  --crit-bg:#3a1d17; --low-bg:#352a12; --ok-bg:#183024; --plenty-bg:#1a2633; color-scheme:dark}
+
+*{box-sizing:border-box}
+html{padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+body{margin:0;background:var(--bg);color:var(--fg);font-family:var(--body);font-size:15px;line-height:1.5}
+.band{padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+.in{max-width:1120px;margin:0 auto}
+a{color:inherit}
+button,input,select,textarea{font:inherit;color:inherit}
+:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.num{font-variant-numeric:tabular-nums}
+
+/* top bar */
+.top{border-bottom:1px solid var(--line);background:var(--bg)}
+.top .in{display:flex;align-items:center;gap:20px;padding-block:14px;flex-wrap:wrap}
+.logo{font-family:var(--display);font-size:22px;text-decoration:none;display:flex;align-items:center;gap:10px}
+.logo i{width:26px;height:26px;border-radius:7px;background:var(--accent);display:grid;place-items:center}
+.logo i::after{content:"";width:10px;height:12px;border:2px solid var(--accent-fg);border-top-width:4px;border-radius:2px}
+.top nav{display:flex;gap:18px;margin-left:auto;font-size:14px;flex-wrap:wrap}
+.top nav a{text-decoration:none;color:var(--muted)}
+.top nav a:hover{color:var(--fg)}
+
+/* public board */
+.hero .in{padding-block:56px 40px;display:grid;grid-template-columns:minmax(0,5fr) minmax(0,7fr);gap:48px;align-items:start}
+.eyebrow{font-family:var(--mono);font-size:12px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted)}
+.hero h1{font-family:var(--display);font-weight:400;font-size:clamp(2.3rem,5vw,3.6rem);line-height:1.04;margin:14px 0 16px;text-wrap:balance}
+.hero p{color:var(--muted);max-width:44ch;margin:0 0 18px}
+.dropoff{display:grid;gap:4px;font-size:14px;border-left:3px solid var(--kraft);padding:4px 0 4px 14px}
+.dropoff b{font-weight:600}
+.board{background:var(--surface);border:1px solid var(--line);border-radius:16px;overflow:hidden}
+.board-h{display:flex;justify-content:space-between;align-items:baseline;gap:12px;padding:18px 20px;border-bottom:1px solid var(--line);flex-wrap:wrap}
+.board-h h2{font-family:var(--display);font-weight:400;font-size:22px;margin:0}
+.board-h span{font-family:var(--mono);font-size:12px;color:var(--muted)}
+.needs{list-style:none;margin:0;padding:0}
+.needs li{display:grid;grid-template-columns:auto 1fr auto;gap:4px 14px;padding:13px 20px;border-bottom:1px solid var(--line);align-items:center}
+.needs li:last-child{border-bottom:0}
+.needs .nm{font-weight:600}
+.needs .cat{font-size:13px;color:var(--muted)}
+.needs .amt{font-family:var(--mono);font-size:13px;text-align:right;color:var(--muted)}
+.needs .amt b{color:var(--fg);font-weight:500}
+.dot{width:10px;height:10px;border-radius:50%;grid-row:span 2}
+.dot.critical{background:var(--crit)} .dot.low{background:var(--low)}
+.board-f{padding:12px 20px;background:var(--soft);font-size:13px;color:var(--muted);display:flex;gap:16px;flex-wrap:wrap}
+.board-f span{display:inline-flex;align-items:center;gap:6px}
+.board-f .dot{grid-row:auto;width:8px;height:8px}
+.thanks{padding:16px 20px;font-size:14px;color:var(--muted)}
+
+/* app */
+.app{background:var(--soft);border-top:1px solid var(--line);border-bottom:1px solid var(--line)}
+.app .in{padding-block:44px 56px}
+.app-h{display:flex;justify-content:space-between;align-items:end;gap:16px;flex-wrap:wrap;margin-bottom:22px}
+.app-h h2{font-family:var(--display);font-weight:400;font-size:clamp(1.7rem,3.2vw,2.3rem);margin:6px 0 0}
+.app-h p{margin:6px 0 0;color:var(--muted);max-width:60ch;font-size:14px}
+.pub{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+.pub small{color:var(--muted);font-size:13px}
+.btn{border:1px solid var(--line);background:var(--surface);border-radius:9px;padding:8px 14px;cursor:pointer;font-weight:500;font-size:14px}
+.btn:hover{border-color:var(--muted)}
+.btn.primary{background:var(--accent);color:var(--accent-fg);border-color:var(--accent)}
+.btn.primary:hover{filter:brightness(1.08)}
+.btn.small{padding:4px 9px;font-size:12.5px;border-radius:7px}
+.btn.ghost{background:transparent;border-color:transparent;color:var(--muted)}
+.btn.ghost:hover{color:var(--fg);border-color:var(--line)}
+
+.tiles{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px;margin-bottom:18px}
+.tile{background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:14px 16px}
+.tile .k{font-size:12.5px;color:var(--muted)}
+.tile .v{font-family:var(--display);font-size:28px;line-height:1.2;margin-top:2px}
+.tile .s{font-size:12.5px;color:var(--muted)}
+.tile.crit .v{color:var(--crit)}
+
+.tabs{display:flex;gap:4px;border-bottom:1px solid var(--line);margin-bottom:0;overflow-x:auto}
+.tabs button{border:0;background:transparent;padding:10px 14px;cursor:pointer;color:var(--muted);font-weight:500;border-bottom:2px solid transparent;margin-bottom:-1px;white-space:nowrap}
+.tabs button[aria-selected="true"]{color:var(--fg);border-color:var(--accent)}
+.panel{background:var(--surface);border:1px solid var(--line);border-top:0;border-radius:0 0 12px 12px;padding:16px}
+.toolbar{display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin-bottom:12px}
+.toolbar .grow{flex:1}
+.toolbar input[type=search]{border:1px solid var(--line);background:var(--bg);border-radius:8px;padding:7px 10px;min-width:0;width:220px;max-width:100%}
+.scroll{overflow-x:auto;border:1px solid var(--line);border-radius:10px}
+table{border-collapse:collapse;width:100%;font-size:13.5px}
+th{font-size:11.5px;font-weight:600;text-transform:uppercase;letter-spacing:.05em;color:var(--muted);text-align:left;padding:9px 10px;background:var(--soft);border-bottom:1px solid var(--line);white-space:nowrap;position:sticky;top:0}
+td{padding:0;border-bottom:1px solid var(--line);border-right:1px solid var(--line);vertical-align:middle}
+td:last-child{border-right:0}
+tr:last-child td{border-bottom:0}
+td.ro{padding:7px 10px;white-space:nowrap}
+.cell{width:100%;border:0;background:transparent;padding:7px 10px;min-width:70px}
+.cell:focus{background:var(--soft);outline:2px solid var(--accent);outline-offset:-2px}
+select.cell{appearance:none;cursor:pointer}
+td.r,th.r{text-align:right}
+td.r .cell{text-align:right}
+.w-name{min-width:170px}
+.pill{display:inline-block;font-size:11.5px;font-weight:600;padding:2px 8px;border-radius:999px;text-transform:capitalize}
+.pill.critical{background:var(--crit-bg);color:var(--crit)} .pill.low{background:var(--low-bg);color:var(--low)}
+.pill.ok{background:var(--ok-bg);color:var(--ok)} .pill.plenty{background:var(--plenty-bg);color:var(--plenty)}
+.pill.new{background:var(--soft);color:var(--muted)}
+.exp-soon{color:var(--crit);font-weight:600}
+tr.sel td{background:var(--soft)}
+tr.click{cursor:pointer}
+tr.click:hover td{background:var(--soft)}
+
+.fc{display:grid;grid-template-columns:minmax(0,1fr) 340px;gap:16px}
+.detail{border:1px solid var(--line);border-radius:10px;padding:14px;align-self:start}
+.detail h3{font-family:var(--display);font-weight:400;font-size:20px;margin:0 0 2px}
+.detail .sub{font-size:13px;color:var(--muted);margin-bottom:10px}
+.detail dl{display:grid;grid-template-columns:auto auto;gap:6px 12px;margin:12px 0 0;font-size:13px}
+.detail dt{color:var(--muted)} .detail dd{margin:0;text-align:right;font-family:var(--mono);font-size:12.5px}
+.chart text{fill:var(--muted);font-family:var(--mono);font-size:9px}
+.settings{display:flex;gap:14px;flex-wrap:wrap;align-items:center;font-size:13px;color:var(--muted)}
+.settings label{display:flex;align-items:center;gap:6px}
+.settings input{width:64px;border:1px solid var(--line);background:var(--bg);border-radius:7px;padding:4px 7px}
+
+.log{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:20px}
+.card{border:1px solid var(--line);border-radius:10px;padding:14px}
+.card h3{margin:0 0 4px;font-size:15px}
+.card p.h{margin:0 0 12px;color:var(--muted);font-size:13px}
+.form{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
+.form label{display:grid;gap:4px;font-size:12.5px;color:var(--muted)}
+.form .full{grid-column:1/-1}
+.form input,.form select,textarea{border:1px solid var(--line);background:var(--bg);border-radius:8px;padding:7px 9px;min-width:0;width:100%}
+textarea{resize:vertical;font-family:var(--mono);font-size:12.5px}
+.seg{display:flex;border:1px solid var(--line);border-radius:8px;overflow:hidden}
+.seg button{flex:1;border:0;background:var(--bg);padding:7px;cursor:pointer;font-size:13px}
+.seg button[aria-pressed="true"]{background:var(--accent);color:var(--accent-fg)}
+.draft td.ro{font-size:13px}
+.flag{color:var(--low);font-size:12px}
+.moves{list-style:none;margin:0;padding:0;font-size:13px}
+.moves li{display:grid;grid-template-columns:78px 1fr auto auto;gap:10px;padding:8px 0;border-bottom:1px solid var(--line);align-items:center}
+.moves .k{font-family:var(--mono);font-size:11.5px;color:var(--muted)}
+.moves .q{font-family:var(--mono);font-size:12.5px}
+.moves .rev{color:var(--muted);text-decoration:line-through}
+.toast{position:fixed;left:50%;bottom:calc(20px + env(safe-area-inset-bottom,0px));transform:translateX(-50%);background:var(--fg);color:var(--bg);padding:9px 16px;border-radius:999px;font-size:13.5px;opacity:0;transition:opacity .2s;pointer-events:none;z-index:5}
+.toast.on{opacity:1}
+
+/* how it works */
+.how .in{padding-block:52px 70px}
+.how h2{font-family:var(--display);font-weight:400;font-size:clamp(1.6rem,3vw,2.1rem);margin:8px 0 26px;max-width:24ch}
+.rules{display:grid;grid-template-columns:repeat(auto-fit,minmax(230px,1fr));gap:28px}
+.rules h3{font-size:15px;margin:0 0 6px}
+.rules p{margin:0;color:var(--muted);font-size:14px}
+.rules code{font-family:var(--mono);font-size:12.5px;background:var(--soft);padding:1px 5px;border-radius:4px}
+.foot .in{padding-block:22px;border-top:1px solid var(--line);display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;font-size:13px;color:var(--muted)}
+
+@media (max-width:900px){.hero .in{grid-template-columns:1fr;gap:28px}.fc{grid-template-columns:1fr}.log{grid-template-columns:1fr}.tiles{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media (prefers-reduced-motion:reduce){*{transition:none!important}}
+</style>
+</head>
+<body>
+
+<header class="top band"><div class="in">
+  <a class="logo" href="#top" id="top"><i aria-hidden="true"></i>Pantry</a>
+  <nav aria-label="Page"><a href="#need">What we need</a><a href="#stockroom">Stockroom</a><a href="#how">How it works</a><a href="https://github.com/bnvac">← Ben Vaccaro</a></nav>
+</div></header>
+
+<section class="hero band" id="need"><div class="in">
+  <div>
+    <div class="eyebrow">Community food pantry</div>
+    <h1>Here's what our shelves need this week.</h1>
+    <p>This list is written by our stockroom, not by a person guessing. When a shelf is about to run out, it shows up here. Bring what's at the top first.</p>
+    <div class="dropoff"><b>Drop-off</b><span>Tuesdays 4–7 pm · Saturdays 9–noon</span><span>Unopened, in date, no glass please.</span></div>
+  </div>
+  <div class="board" aria-live="polite">
+    <div class="board-h"><h2>We need</h2><span id="pubdate">—</span></div>
+    <ul class="needs" id="needs"></ul>
+    <div class="board-f"><span><i class="dot critical"></i>Running out this week</span><span><i class="dot low"></i>Low</span><span id="pubwt"></span></div>
+  </div>
+</div></section>
+
+<section class="app band" id="stockroom"><div class="in">
+  <div class="app-h">
+    <div>
+      <div class="eyebrow">Volunteer view · prototype</div>
+      <h2>The stockroom</h2>
+      <p>Edit the sheet like a spreadsheet, log what came in and went out, and the forecast works out what runs out and when. Example data; your edits stay in this browser.</p>
+    </div>
+    <div class="pub"><small id="pubstate"></small><button class="btn primary" id="publish" type="button">Update website</button></div>
+  </div>
+
+  <div class="tiles" id="tiles"></div>
+
+  <div class="tabs" role="tablist" aria-label="Stockroom">
+    <button role="tab" aria-selected="true" aria-controls="p-sheet" id="t-sheet">Sheet</button>
+    <button role="tab" aria-selected="false" aria-controls="p-fc" id="t-fc">Forecast</button>
+    <button role="tab" aria-selected="false" aria-controls="p-log" id="t-log">Log in / out</button>
+    <button role="tab" aria-selected="false" aria-controls="p-io" id="t-io">Import / export</button>
+  </div>
+
+  <div class="panel" role="tabpanel" id="p-sheet" aria-labelledby="t-sheet">
+    <div class="toolbar">
+      <input type="search" id="q" placeholder="Filter items…" aria-label="Filter items">
+      <select id="fcat" class="btn" aria-label="Category filter"></select>
+      <span class="grow"></span>
+      <button class="btn" id="addrow" type="button">+ Add item</button>
+    </div>
+    <div class="scroll"><table id="sheet">
+      <thead><tr><th class="w-name">Item</th><th>Category</th><th>Unit</th><th class="r">lb / unit</th><th>Location</th><th class="r">On hand</th><th class="r">lbs</th><th class="r">Par</th><th>Next expiry</th><th>Status</th><th></th></tr></thead>
+      <tbody></tbody>
+    </table></div>
+    <p style="font-size:12.5px;color:var(--muted);margin:10px 0 0">Changing <b>On hand</b> records a count: the difference is logged as an adjustment, never overwritten.</p>
+  </div>
+
+  <div class="panel" role="tabpanel" id="p-fc" aria-labelledby="t-fc" hidden>
+    <div class="toolbar settings">
+      <label>Season multiplier <input type="number" step="0.05" min="0.5" max="3" id="season"></label>
+      <label>Order lead time (days) <input type="number" step="1" min="0" max="30" id="lead"></label>
+      <span class="grow"></span><span>Weekly use = weighted average of recent weeks (α 0.3), stock-out weeks left out.</span>
+    </div>
+    <div class="fc">
+      <div class="scroll"><table id="fctable">
+        <thead><tr><th>Item</th><th>Last 10 weeks</th><th class="r">Use / wk</th><th class="r">Usable</th><th class="r">Cover</th><th>Runs out</th><th>Order by</th><th class="r">Need</th><th class="r">lbs</th><th>Status</th></tr></thead>
+        <tbody></tbody>
+      </table></div>
+      <aside class="detail" id="detail" aria-live="polite"></aside>
+    </div>
+  </div>
+
+  <div class="panel" role="tabpanel" id="p-log" aria-labelledby="t-log" hidden>
+    <div class="log">
+      <div style="display:grid;gap:16px;align-content:start">
+        <form class="card" id="mvform">
+          <h3>One entry</h3><p class="h">Out is taken oldest expiry first. You never pick a batch.</p>
+          <div class="form">
+            <div class="full seg" role="group" aria-label="Kind" id="kindseg">
+              <button type="button" data-k="receive" aria-pressed="true">Received</button>
+              <button type="button" data-k="out" aria-pressed="false">Given out</button>
+              <button type="button" data-k="spoil" aria-pressed="false">Spoiled</button>
+            </div>
+            <label class="full">Item <input list="itemlist" id="mvitem" required autocomplete="off"></label>
+            <label>Quantity <input type="number" min="0.1" step="any" id="mvqty" required></label>
+            <label>Date <input type="date" id="mvdate" required></label>
+            <label id="expwrap">Expires <input type="date" id="mvexp"></label>
+            <label>Note <input id="mvnote" placeholder="food bank, drive…"></label>
+            <div class="full"><button class="btn primary" type="submit">Save entry</button></div>
+          </div>
+        </form>
+        <div class="card">
+          <h3>Paste a donation list</h3><p class="h">Type it the way you'd say it. It makes a draft; nothing saves until you confirm. (The real app sends a photo or this text to Claude for the draft.)</p>
+          <textarea id="paste" rows="4" aria-label="Donation list">2 cases tuna, 40 lb potatoes
+a dozen cereal exp 3/27
+18 jars peanut butter</textarea>
+          <div style="display:flex;gap:8px;margin-top:10px"><button class="btn" id="parse" type="button">Make draft</button></div>
+          <div id="draft"></div>
+        </div>
+      </div>
+      <div class="card">
+        <h3>Recent entries</h3><p class="h">Append-only. Undo posts a reversing entry, so the history always adds up.</p>
+        <ul class="moves" id="moves"></ul>
+      </div>
+    </div>
+    <datalist id="itemlist"></datalist>
+  </div>
+
+  <div class="panel" role="tabpanel" id="p-io" aria-labelledby="t-io" hidden>
+    <div class="log">
+      <div class="card">
+        <h3>Export</h3><p class="h">CSV of the sheet with the forecast columns, for a food-bank order or a food-drive flyer.</p>
+        <textarea id="csvout" rows="10" readonly aria-label="CSV export"></textarea>
+        <div style="display:flex;gap:8px;margin-top:10px;flex-wrap:wrap"><button class="btn" id="copycsv" type="button">Copy CSV</button><button class="btn" id="copyneeds" type="button">Copy "we need" text</button></div>
+      </div>
+      <div class="card">
+        <h3>Import a sheet</h3><p class="h">Paste or open a CSV with <code>name, category, unit, lb_per_unit, location, par, on_hand</code>. Existing items are matched by name and counted; new ones are added.</p>
+        <textarea id="csvin" rows="6" aria-label="CSV import" placeholder="name,category,unit,lb_per_unit,location,par,on_hand&#10;Canned soup,Vegetables,each,0.7,Shelf B,40,22"></textarea>
+        <div style="display:flex;gap:8px;margin-top:10px;flex-wrap:wrap;align-items:center"><button class="btn primary" id="doimport" type="button">Import</button><label class="btn" for="csvfile" style="cursor:pointer">Open file…</label><input type="file" id="csvfile" accept=".csv,text/csv" hidden><span class="grow"></span><button class="btn ghost" id="reset" type="button">Reset example data</button></div>
+        <p id="resetask" style="font-size:13px;margin:10px 0 0" hidden>Replace everything with the example data? <button class="btn small" id="resetyes" type="button">Yes, reset</button> <button class="btn small ghost" id="resetno" type="button">Cancel</button></p>
+      </div>
+    </div>
+  </div>
+</div></section>
+
+<section class="how band" id="how"><div class="in">
+  <div class="eyebrow">How it works</div>
+  <h2>A small warehouse system, built for volunteers who change every Saturday.</h2>
+  <div class="rules">
+    <div><h3>Nothing is overwritten</h3><p>Every can in or out is a row in an append-only ledger. On-hand is the sum. A mistake gets a reversing entry, so "who logged 400 lbs of soup?" always has an answer.</p></div>
+    <div><h3>AI drafts, people confirm</h3><p>Snap a photo of a sorted pile and Claude Haiku drafts the rows: matched items, counts, legible expiry dates only. A volunteer edits and confirms. AI never writes stock.</p></div>
+    <div><h3>Forecast on time, not people</h3><p>The pantry keeps no client records. Weekly outflow is the signal: weighted recent usage gives weeks of cover, expiring stock is subtracted, and the shortfall becomes the list above.</p></div>
+    <div><h3>Infant formula is different</h3><p>Most date labels are quality dates. Formula's is a use-by, so expired batches are blocked from going out, and they don't count toward cover.</p></div>
+  </div>
+  <p style="margin:34px 0 0;font-size:14px;color:var(--muted);max-width:70ch">Production design: Django 5.2 + SQLite on Railway, roles for volunteers and coordinators, CSV export everywhere so the pantry is never locked in. Source and design doc: <a href="https://github.com/bnvac/foodpantryapp" target="_blank" rel="noopener">github.com/bnvac/foodpantryapp</a>.</p>
+</div></section>
+
+<footer class="foot band"><div class="in"><span>Pantry · a project by Ben Vaccaro</span><span>No household data, ever.</span></div></footer>
+<div class="toast" id="toast" role="status"></div>
+
+<script>
+(function(){
+"use strict";
+var KEY="pantry.v1", DAY=864e5;
+var CATS={"Protein":3,"Grains":3,"Breakfast":3,"Vegetables":3,"Produce":1,"Dairy":2,"Baby":4,"Personal care":4};
+var LOCS=["Shelf A","Shelf B","Shelf C","Walk-in fridge","Back room"];
+var UNITS=["each","lb","case","box","bag","jar","pack"];
+
+/* ---------- dates ---------- */
+function pad(n){return (n<10?"0":"")+n}
+function toS(t){var d=new Date(t);return d.getUTCFullYear()+"-"+pad(d.getUTCMonth()+1)+"-"+pad(d.getUTCDate())}
+function toT(s){var p=s.split("-");return Date.UTC(+p[0],+p[1]-1,+p[2])}
+var now=new Date(), TODAY=toS(Date.UTC(now.getFullYear(),now.getMonth(),now.getDate())), T0=toT(TODAY);
+function addD(s,n){return toS(toT(s)+n*DAY)}
+function monday(s){var t=toT(s),wd=(new Date(t).getUTCDay()+6)%7;return toS(t-wd*DAY)}
+var MON=["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"];
+function nice(s){if(!s)return "—";if(s===TODAY)return "today";var d=new Date(toT(s));return MON[d.getUTCMonth()]+" "+d.getUTCDate()}
+function daysTo(s){return Math.round((toT(s)-T0)/DAY)}
+
+/* ---------- example data (deterministic) ---------- */
+function rng(seed){return function(){seed=(seed*16807)%2147483647;return (seed-1)/2147483646}}
+function sample(){
+  // name, category, unit, lb/unit, location, par, policy, shelfDays, weekly use, target weeks of cover at the end
+  var spec=[
+    ["Canned tuna","Protein","each",0.31,"Shelf A",60,"soft",0,46,0.6],
+    ["Peanut butter","Protein","jar",1.0,"Shelf A",40,"soft",0,22,1.7],
+    ["Canned chicken","Protein","each",0.78,"Shelf A",30,"soft",0,14,4.2],
+    ["Dry pasta","Grains","box",1.0,"Shelf B",80,"soft",0,38,7.5],
+    ["Rice","Grains","bag",2.0,"Shelf B",50,"soft",0,20,3.4],
+    ["Oatmeal","Grains","each",2.6,"Shelf B",25,"soft",0,9,2.1],
+    ["Cereal","Breakfast","box",0.9,"Shelf B",50,"soft",0,31,2.1],
+    ["Canned green beans","Vegetables","each",0.9,"Shelf C",60,"soft",0,35,9.8],
+    ["Canned tomatoes","Vegetables","each",0.9,"Shelf C",40,"soft",0,18,5.1],
+    ["Potatoes","Produce","lb",1.0,"Back room",120,"perishable",21,95,1.3],
+    ["Apples","Produce","lb",1.0,"Walk-in fridge",80,"perishable",28,60,1.6],
+    ["Shelf-stable milk","Dairy","each",2.2,"Shelf C",30,"soft",0,24,2.6],
+    ["Infant formula","Baby","each",0.8,"Shelf A",12,"hard",0,5,1.2],
+    ["Baby food","Baby","jar",0.25,"Shelf A",40,"hard",0,12,6.0],
+    ["Diapers, size 4","Personal care","pack",3.0,"Back room",15,"soft",0,7,0.8],
+    ["Toothpaste","Personal care","each",0.3,"Shelf C",30,"soft",0,10,5.5]
+  ];
+  var r=rng(42), items=[], moves=[], id=1, thisMon=monday(TODAY), start=addD(thisMon,-70);
+  spec.forEach(function(s,i){
+    var it={id:"i"+(i+1),name:s[0],category:s[1],unit:s[2],lb:s[3],location:s[4],par:s[5],policy:s[6],shelfDays:s[7]};
+    items.push(it);
+    var b=s[8], outs=[], totOut=0, recs=[], totRec=0;
+    for(var w=0;w<10;w++){
+      [1,5].forEach(function(dd){var q=Math.max(1,Math.round(b/2*(0.75+r()*0.5)*(w>6?1.12:1)));outs.push([addD(start,w*7+dd),q]);totOut+=q;});
+      if(w>0&&w<9&&w%2===0){var q=Math.round(b*2*(0.8+r()*0.4));recs.push([addD(start,w*7),q]);totRec+=q;}
+    }
+    var s0=Math.max(Math.round(b*s[9]+totOut-totRec),Math.round(b*2.2));
+    recs.unshift([addD(start,-3),s0]);
+    // outs this week so far
+    var dtw=daysTo(thisMon);
+    recs.forEach(function(x){moves.push(mv(it,"receive",x[1],x[0],expFor(it,x[0]),"food bank"));});
+    outs.forEach(function(x){moves.push(mv(it,"out",-x[1],x[0],null,""));});
+    if(daysTo(addD(thisMon,1))<=0) moves.push(mv(it,"out",-Math.max(1,Math.round(b*0.4)),addD(thisMon,1),null,""));
+  });
+  function mv(it,k,q,d,e,n){return {id:"m"+(id++),item:it.id,kind:k,qty:q,date:d,expires:e,note:n,via:"form"}}
+  function expFor(it,d){
+    if(it.policy==="perishable") return addD(d,it.shelfDays);
+    if(it.policy==="hard") return addD(d,it.name==="Infant formula"?92:200);
+    return addD(d,300+Math.round(r()*200));
+  }
+  moves.sort(function(a,b){return a.date<b.date?-1:a.date>b.date?1:0});
+  return {items:items,moves:moves,settings:{season:1.0,lead:7},published:null,nextId:id};
+}
+
+/* ---------- state ---------- */
+var S;
+function load(){try{var j=localStorage.getItem(KEY);if(j){S=JSON.parse(j);return}}catch(e){} S=sample();}
+function save(){try{localStorage.setItem(KEY,JSON.stringify(S))}catch(e){}}
+load();
+function item(id){for(var i=0;i<S.items.length;i++)if(S.items[i].id===id)return S.items[i];return null}
+function byName(n){n=n.trim().toLowerCase();for(var i=0;i<S.items.length;i++)if(S.items[i].name.toLowerCase()===n&&!S.items[i].gone)return S.items[i];return null}
+function newMove(o){o.id="m"+(S.nextId++);S.moves.push(o);return o}
+
+/* ---------- ledger replay: FIFO batches + weekly outflow ---------- */
+function replay(it){
+  var ms=S.moves.filter(function(m){return m.item===it.id}).slice().sort(function(a,b){return a.date<b.date?-1:a.date>b.date?1:(+a.id.slice(1))-(+b.id.slice(1))});
+  var batches=[], onHand=0, weeks={}, zeroWeeks={};
+  function take(q){ // FIFO: earliest expiry first, undated last
+    batches.sort(function(a,b){return (a.exp||"9999")<(b.exp||"9999")?-1:(a.exp||"9999")>(b.exp||"9999")?1:0});
+    for(var i=0;i<batches.length&&q>0;i++){var t=Math.min(batches[i].q,q);batches[i].q-=t;q-=t}
+    batches=batches.filter(function(b){return b.q>1e-9});
+  }
+  ms.forEach(function(m){
+    var wk=monday(m.date);
+    if(m.qty>0){batches.push({q:m.qty,exp:m.expires||null,src:m.id})}
+    else take(-m.qty);
+    onHand+=m.qty;
+    var demand=(m.kind==="out"||(m.kind==="adjust"&&m.via==="count"&&m.qty<0))?-m.qty:0;
+    if(m.kind==="out"&&m.qty>0) demand=-m.qty; // reversal of an out
+    weeks[wk]=(weeks[wk]||0)+demand;
+    if(onHand<=0) zeroWeeks[wk]=1;
+  });
+  return {batches:batches,onHand:Math.max(0,round2(onHand)),weeks:weeks,zero:zeroWeeks,count:ms.length};
+}
+function round2(x){return Math.round(x*100)/100}
+
+/* ---------- forecast (pure given replay) ---------- */
+var levelOrder={critical:0,low:1,ok:2,plenty:3,new:4};
+function forecast(it){
+  var R=replay(it), thisMon=monday(TODAY), hist=[], normal=[];
+  for(var w=10;w>=1;w--){var k=addD(thisMon,-7*w);var v=R.weeks[k]||0;hist.push({wk:k,v:v,zero:!!R.zero[k]});if(!R.zero[k])normal.push(v)}
+  var U=null;
+  if(normal.length>=4){U=normal[0];for(var i=1;i<normal.length;i++)U=0.3*normal[i]+0.7*U;U*=(+S.settings.season||1)}
+  var T=CATS[it.category]||3;
+  // usable stock: hard/perishable batches that expire before they'd be used don't count
+  var usable=0, used=0, expSoon=null, nextExp=null, expired=0;
+  R.batches.slice().sort(function(a,b){return (a.exp||"9999")<(b.exp||"9999")?-1:1}).forEach(function(b){
+    if(b.exp&&(!nextExp||b.exp<nextExp))nextExp=b.exp;
+    var strict=it.policy==="hard"||it.policy==="perishable";
+    if(b.exp&&daysTo(b.exp)<0&&strict){expired+=b.q;return}
+    var u=b.q;
+    if(strict&&b.exp&&U){var cap=Math.max(0,daysTo(b.exp)/7*U-used);u=Math.min(b.q,cap)}
+    usable+=u;used+=u;
+  });
+  usable=round2(usable);
+  var level,cover=null,runOut=null,orderBy=null,need=0;
+  if(U&&U>0){
+    cover=usable/U;
+    level=cover<1?"critical":cover<T?"low":cover<3*T?"ok":"plenty";
+    runOut=addD(TODAY,Math.floor(cover*7));
+    orderBy=addD(runOut,-(+S.settings.lead||0));if(orderBy<TODAY)orderBy=TODAY;
+    need=Math.max(0,Math.ceil(T*U-usable));
+  } else {
+    var p=it.par||0; level=!p?"new":R.onHand<p*0.34?"critical":R.onHand<p?"low":R.onHand<p*3?"ok":"plenty";
+    need=Math.max(0,Math.ceil(p-R.onHand));
+  }
+  return {it:it,onHand:R.onHand,usable:usable,U:U,T:T,cover:cover,level:level,runOut:runOut,orderBy:orderBy,need:need,needLb:round2(need*(it.lb||0)),hist:hist,nextExp:nextExp,expired:expired,batches:R.batches};
+}
+function all(){return S.items.filter(function(i){return !i.gone}).map(forecast)}
+
+/* ---------- helpers ---------- */
+function el(t,a,c){var e=document.createElement(t);if(a)for(var k in a){if(k==="text")e.textContent=a[k];else if(k==="cls")e.className=a[k];else e.setAttribute(k,a[k])}(c||[]).forEach(function(x){e.appendChild(typeof x==="string"?document.createTextNode(x):x)});return e}
+function fmt(n,d){if(n==null||isNaN(n))return "—";return (+n).toLocaleString(undefined,{maximumFractionDigits:d==null?1:d})}
+function $(id){return document.getElementById(id)}
+var toastT;function toast(m){var t=$("toast");t.textContent=m;t.classList.add("on");clearTimeout(toastT);toastT=setTimeout(function(){t.classList.remove("on")},2200)}
+function pill(l){return el("span",{cls:"pill "+l,text:l==="new"?"no history":l})}
+function spark(h,U){
+  var w=96,hh=24,max=Math.max.apply(null,h.map(function(x){return x.v}).concat([U||0,1]));
+  var ns="http://www.w3.org/2000/svg",s=document.createElementNS(ns,"svg");s.setAttribute("viewBox","0 0 "+w+" "+hh);s.setAttribute("width",w);s.setAttribute("height",hh);s.setAttribute("aria-hidden","true");
+  var bw=w/h.length;
+  h.forEach(function(x,i){var r=document.createElementNS(ns,"rect"),bh=Math.max(1,x.v/max*(hh-3));r.setAttribute("x",i*bw+1);r.setAttribute("y",hh-bh);r.setAttribute("width",bw-2);r.setAttribute("height",bh);r.setAttribute("rx",1);r.setAttribute("fill",x.zero?"var(--crit)":"var(--line)");s.appendChild(r)});
+  if(U){var l=document.createElementNS(ns,"line"),y=hh-U/(S.settings.season||1)/max*(hh-3);l.setAttribute("x1",0);l.setAttribute("x2",w);l.setAttribute("y1",y);l.setAttribute("y2",y);l.setAttribute("stroke","var(--accent)");l.setAttribute("stroke-width","1.5");s.appendChild(l)}
+  return s;
+}
+
+/* ---------- public board ---------- */
+function snapshot(F){
+  return {date:TODAY,items:F.filter(function(f){return f.level==="critical"||f.level==="low"}).sort(function(a,b){return levelOrder[a.level]-levelOrder[b.level]||b.needLb-a.needLb}).map(function(f){return {name:f.it.name,category:f.it.category,level:f.level,need:f.need,unit:f.it.unit,lb:f.needLb,by:f.orderBy}})};
+}
+function renderBoard(){
+  var P=S.published, ul=$("needs");ul.textContent="";
+  if(!P){P=snapshot(all());}
+  $("pubdate").textContent="Updated "+nice(P.date);
+  if(!P.items.length){ul.appendChild(el("li",{cls:"thanks",text:"Shelves are full right now. Thank you!"}));$("pubwt").textContent="";return}
+  var tot=0;
+  P.items.slice(0,9).forEach(function(n){
+    tot+=n.lb||0;
+    var u=n.unit==="each"?"":" "+n.unit+(n.need===1||n.unit==="lb"?"":(n.unit==="box"?"es":"s"));
+    ul.appendChild(el("li",null,[el("i",{cls:"dot "+n.level,"aria-label":n.level}),el("span",{cls:"nm",text:n.name}),el("span",{cls:"amt"},[el("b",{text:fmt(n.need,0)+u})]),el("span",{cls:"cat",text:n.category}),el("span",{cls:"amt",text:n.by?(n.by===P.date?"needed now":"by "+nice(n.by)):""})]));
+  });
+  $("pubwt").textContent="About "+fmt(tot,0)+" lbs in all";
+}
+
+/* ---------- tiles ---------- */
+function renderTiles(F){
+  var crit=F.filter(function(f){return f.level==="critical"}).length, low=F.filter(function(f){return f.level==="low"}).length;
+  var lbs=F.reduce(function(a,f){return a+f.onHand*(f.it.lb||0)},0), need=F.reduce(function(a,f){return a+((f.level==="critical"||f.level==="low")?f.needLb:0)},0);
+  var exp=F.filter(function(f){return f.nextExp&&daysTo(f.nextExp)<=30}).length;
+  var t=$("tiles");t.textContent="";
+  [["Running out this week",crit,low+" more running low","crit"],["On the shelves",fmt(lbs,0)+" lb",F.length+" items",""],["Shortfall to target",fmt(need,0)+" lb","to reach each category's weeks of cover",""],["Expiring within 30 days",exp,exp===1?"item to use first":"items to use first",""]].forEach(function(x){
+    t.appendChild(el("div",{cls:"tile "+x[3]},[el("div",{cls:"k",text:x[0]}),el("div",{cls:"v num",text:String(x[1])}),el("div",{cls:"s",text:x[2]})]));
+  });
+  var dirty=JSON.stringify(snapshot(F).items)!==JSON.stringify((S.published||{}).items);
+  $("pubstate").textContent=S.published?(dirty?"The website is out of date":"Website is current · "+nice(S.published.date)):"Not published yet";
+}
+
+/* ---------- sheet ---------- */
+function opts(sel,list,v){list.forEach(function(o){var e=el("option",{value:o,text:o});if(o===v)e.selected=true;sel.appendChild(e)})}
+function renderSheet(F){
+  var q=$("q").value.trim().toLowerCase(), c=$("fcat").value, tb=$("sheet").tBodies[0];tb.textContent="";
+  F.filter(function(f){return (!q||f.it.name.toLowerCase().indexOf(q)>=0)&&(!c||f.it.category===c)}).forEach(function(f){
+    var it=f.it,tr=el("tr");
+    function inp(field,type,cls){var i=el("input",{cls:"cell",type:type||"text",value:it[field]==null?"":it[field],"aria-label":field+" for "+it.name,id:"c-"+it.id+"-"+field});if(type==="number"){i.step="any";i.min="0"}
+      i.addEventListener("change",function(){var v=type==="number"?(i.value===""?null:+i.value):i.value.trim();if(field==="name"&&!v){i.value=it.name;return}it[field]=v;commit("Saved")});return el("td",{cls:cls||""},[i])}
+    function sel(field,list){var s=el("select",{cls:"cell","aria-label":field+" for "+it.name,id:"c-"+it.id+"-"+field});opts(s,list,it[field]);s.addEventListener("change",function(){it[field]=s.value;commit("Saved")});return el("td",null,[s])}
+    tr.appendChild(inp("name"));tr.appendChild(sel("category",Object.keys(CATS)));tr.appendChild(sel("unit",UNITS));
+    tr.appendChild(inp("lb","number","r"));tr.appendChild(sel("location",LOCS));
+    var oh=el("input",{cls:"cell num",type:"number",step:"any",min:"0",value:f.onHand,"aria-label":"On hand for "+it.name,id:"c-"+it.id+"-oh"});
+    oh.addEventListener("change",function(){var v=+oh.value;if(isNaN(v)||v<0){oh.value=f.onHand;return}var d=round2(v-f.onHand);if(d){newMove({item:it.id,kind:"adjust",qty:d,date:TODAY,expires:null,note:"count",via:"count"});commit("Count recorded: "+(d>0?"+":"")+fmt(d))}});
+    tr.appendChild(el("td",{cls:"r"},[oh]));
+    tr.appendChild(el("td",{cls:"ro r num",text:fmt(f.onHand*(it.lb||0),0)}));
+    tr.appendChild(inp("par","number","r"));
+    var ex=el("td",{cls:"ro num"},[el("span",{cls:f.nextExp&&daysTo(f.nextExp)<=30?"exp-soon":"",text:nice(f.nextExp)})]);
+    if(f.expired) ex.appendChild(el("span",{cls:"flag",text:" · "+fmt(f.expired)+" expired"}));
+    tr.appendChild(ex);
+    tr.appendChild(el("td",{cls:"ro"},[pill(f.level)]));
+    var del=el("button",{cls:"btn small ghost",type:"button","aria-label":"Remove "+it.name,text:"Remove"});
+    del.addEventListener("click",function(){it.gone=true;commit(it.name+" removed from the sheet")});
+    tr.appendChild(el("td",{cls:"ro"},[del]));
+    tb.appendChild(tr);
+  });
+}
+
+/* ---------- forecast tab ---------- */
+var selected=null;
+function renderFc(F){
+  var tb=$("fctable").tBodies[0];tb.textContent="";
+  var rows=F.slice().sort(function(a,b){return levelOrder[a.level]-levelOrder[b.level]||(a.cover||0)-(b.cover||0)});
+  if(!selected||!item(selected)||item(selected).gone)selected=rows.length?rows[0].it.id:null;
+  rows.forEach(function(f){
+    var tr=el("tr",{cls:"click"+(f.it.id===selected?" sel":""),tabindex:"0"});
+    function td(t,c){tr.appendChild(el("td",{cls:"ro "+(c||""),text:t}))}
+    td(f.it.name);
+    var sp=el("td",{cls:"ro"});sp.appendChild(spark(f.hist,f.U));tr.appendChild(sp);
+    td(f.U?fmt(f.U):"—","r num");td(fmt(f.usable),"r num");td(f.cover!=null?fmt(f.cover)+" wk":"—","r num");
+    td(nice(f.runOut),"num");td(nice(f.orderBy),"num");
+    td(f.need?fmt(f.need,0)+" "+f.it.unit:"—","r num");td(f.need?fmt(f.needLb,0):"—","r num");
+    var p=el("td",{cls:"ro"});p.appendChild(pill(f.level));tr.appendChild(p);
+    function pick(){selected=f.it.id;renderFc(all())}
+    tr.addEventListener("click",pick);tr.addEventListener("keydown",function(e){if(e.key==="Enter"||e.key===" "){e.preventDefault();pick()}});
+    tb.appendChild(tr);
+  });
+  var f=F.filter(function(x){return x.it.id===selected})[0], d=$("detail");d.textContent="";
+  if(!f)return;
+  d.appendChild(el("h3",{text:f.it.name}));
+  d.appendChild(el("div",{cls:"sub",text:f.it.category+" · target "+f.T+" weeks of cover · "+f.it.policy+" dates"}));
+  d.appendChild(chart(f));
+  var dl=el("dl");
+  [["On hand",fmt(f.onHand)+" "+f.it.unit],["Usable before expiry",fmt(f.usable)],["Weekly use",f.U?fmt(f.U)+" / wk":"under 4 weeks of history"],["Weeks of cover",f.cover!=null?fmt(f.cover):"—"],["Runs out",nice(f.runOut)],["Order by",nice(f.orderBy)],["Need for "+f.T+" wk",fmt(f.need,0)+" "+f.it.unit+" · "+fmt(f.needLb,0)+" lb"],["Batches",String(f.batches.length)]].forEach(function(x){dl.appendChild(el("dt",{text:x[0]}));dl.appendChild(el("dd",{text:x[1]}))});
+  d.appendChild(dl);
+}
+function chart(f){
+  // weekly use bars (past 10 weeks) + projected on-hand line for the next 6 weeks
+  var ns="http://www.w3.org/2000/svg",W=310,H=150,L=30,B=20,Tp=10,fut=6,n=f.hist.length+fut;
+  var proj=[];for(var i=0;i<=fut;i++)proj.push(Math.max(0,f.usable-(f.U||0)*i));
+  var max=Math.max.apply(null,f.hist.map(function(h){return h.v}).concat(proj,[1]));
+  var nice2=Math.pow(10,Math.floor(Math.log10(max)));max=Math.ceil(max/nice2)*nice2;
+  var s=document.createElementNS(ns,"svg");s.setAttribute("viewBox","0 0 "+W+" "+H);s.setAttribute("class","chart");s.setAttribute("width","100%");s.setAttribute("role","img");s.setAttribute("aria-label","Weekly use and projected stock for "+f.it.name);
+  function a(t,o){var e=document.createElementNS(ns,t);for(var k in o)e.setAttribute(k,o[k]);s.appendChild(e);return e}
+  var pw=(W-L-6)/n, y=function(v){return Tp+(H-Tp-B)*(1-v/max)};
+  [0,0.5,1].forEach(function(g){var v=max*g;a("line",{x1:L,x2:W-6,y1:y(v),y2:y(v),stroke:"var(--line)","stroke-width":1});var t=a("text",{x:L-5,y:y(v)+3,"text-anchor":"end"});t.textContent=fmt(v,0)});
+  f.hist.forEach(function(h,i){var bh=(H-Tp-B)*h.v/max;a("rect",{x:L+i*pw+2,y:y(h.v),width:pw-4,height:Math.max(0,bh),rx:2,fill:h.zero?"var(--crit)":"var(--kraft)",opacity:.85})});
+  var x0=L+f.hist.length*pw;
+  a("line",{x1:x0,x2:x0,y1:Tp,y2:H-B,stroke:"var(--muted)","stroke-dasharray":"2 3"});
+  var t1=a("text",{x:x0+3,y:Tp+8});t1.textContent="today";
+  var pts=proj.map(function(v,i){return (x0+i*pw)+","+y(v)}).join(" ");
+  a("polygon",{points:x0+","+y(0)+" "+pts+" "+(x0+fut*pw)+","+y(0),fill:"var(--accent)",opacity:.12});
+  a("polyline",{points:pts,fill:"none",stroke:"var(--accent)","stroke-width":2});
+  a("circle",{cx:x0,cy:y(proj[0]),r:3,fill:"var(--accent)"});
+  var tl=a("text",{x:L,y:H-6});tl.textContent="use / week, 10 wk";
+  var tr=a("text",{x:W-6,y:H-6,"text-anchor":"end"});tr.textContent="stock, next 6 wk";
+  return s;
+}
+
+/* ---------- log tab ---------- */
+var kind="receive";
+document.querySelectorAll("#kindseg button").forEach(function(b){b.addEventListener("click",function(){kind=b.dataset.k;document.querySelectorAll("#kindseg button").forEach(function(x){x.setAttribute("aria-pressed",String(x===b))});$("expwrap").hidden=kind!=="receive"})});
+$("mvdate").value=TODAY;
+$("mvform").addEventListener("submit",function(e){
+  e.preventDefault();
+  var it=byName($("mvitem").value), q=+$("mvqty").value;
+  if(!it){toast("No item called that. Add it on the Sheet first.");return}
+  if(!(q>0)){toast("Enter a quantity above zero.");return}
+  if(kind!=="receive"){var f=forecast(it);if(q>f.onHand+1e-9){toast("Only "+fmt(f.onHand)+" on hand. Log a count if the sheet is wrong.");return}
+    if(it.policy==="hard"&&f.expired>0&&q>f.onHand-f.expired&&kind==="out"){toast("Expired "+it.name+" can't be given out. Log it as spoiled.");return}}
+  newMove({item:it.id,kind:kind,qty:kind==="receive"?q:-q,date:$("mvdate").value||TODAY,expires:kind==="receive"&&$("mvexp").value?$("mvexp").value:(kind==="receive"?defExp(it,$("mvdate").value||TODAY):null),note:$("mvnote").value.trim(),via:"form"});
+  $("mvqty").value="";$("mvnote").value="";$("mvexp").value="";
+  commit((kind==="receive"?"Received ":kind==="out"?"Gave out ":"Spoiled ")+fmt(q)+" "+it.name);
+});
+function defExp(it,d){return it.policy==="perishable"&&it.shelfDays?addD(d,it.shelfDays):null}
+function renderMoves(){
+  var ul=$("moves");ul.textContent="";
+  var reversed={};S.moves.forEach(function(m){if(m.reverses)reversed[m.reverses]=1});
+  S.moves.slice(-14).reverse().forEach(function(m){
+    var it=item(m.item);if(!it)return;
+    var lbl={receive:"in",out:"out",spoil:"spoil",adjust:"count"}[m.kind]||m.kind;
+    var name=el("span",{cls:reversed[m.id]?"rev":"",text:(m.reverses?"undo · ":"")+it.name+(m.note&&m.note!=="count"?" · "+m.note:"")});
+    var btn=el("span");
+    if(!m.reverses&&!reversed[m.id]){var b=el("button",{cls:"btn small ghost",type:"button",text:"Undo"});b.addEventListener("click",function(){newMove({item:m.item,kind:m.kind,qty:-m.qty,date:TODAY,expires:null,note:"",via:m.via,reverses:m.id});commit("Reversed. Both entries stay in the log.")});btn.appendChild(b)}
+    ul.appendChild(el("li",null,[el("span",{cls:"k",text:nice(m.date)+" "+lbl}),name,el("span",{cls:"q num",text:(m.qty>0?"+":"")+fmt(m.qty)}),btn]));
+  });
+}
+
+/* paste-a-list draft */
+var WORDS={dozen:12,a:1,an:1,one:1,two:2,three:3,four:4,five:5,six:6,seven:7,eight:8,nine:9,ten:10,twenty:20};
+function match(text){
+  var t=text.toLowerCase().replace(/[^a-z ]/g," ").split(/\s+/).filter(Boolean).map(function(w){return w.replace(/(es|s)$/,"")});
+  var best=null,bs=0;
+  S.items.forEach(function(it){if(it.gone)return;var n=it.name.toLowerCase().replace(/[^a-z ]/g," ").split(/\s+/).filter(Boolean).map(function(w){return w.replace(/(es|s)$/,"")});
+    var hit=n.filter(function(w){return t.indexOf(w)>=0}).length, sc=hit/n.length+hit*0.01;if(sc>bs){bs=sc;best=it}});
+  return {it:bs>=0.5?best:null,conf:bs>=0.99?"high":bs>=0.5?"low":"none"};
+}
+var draft=[];
+$("parse").addEventListener("click",function(){
+  draft=[];
+  $("paste").value.split(/[\n,;]+/).map(function(s){return s.trim()}).filter(Boolean).forEach(function(line){
+    var m=line.match(/^(\d+(?:\.\d+)?|[a-z]+)\s+(?:(lbs?|pounds?|cases?|boxes?|bags?|jars?|cans?|packs?)\s+)?(?:of\s+)?(.+?)(?:\s+exp(?:ires)?\s+(\d{1,2})\/(\d{2,4}))?$/i);
+    if(!m){draft.push({line:line,it:null,qty:0,exp:null,conf:"none"});return}
+    var q=isNaN(+m[1])?(WORDS[m[1].toLowerCase()]||0):+m[1], u=(m[2]||"").toLowerCase(), mm=match(m[3]);
+    if(/^case/.test(u))q*=12; // a case is 12 units unless the item says otherwise
+    var exp=null;if(m[4]){var yr=+m[5];if(yr<100)yr+=2000;exp=yr+"-"+pad(+m[4])+"-28"}
+    draft.push({line:line,it:mm.it,qty:q,exp:exp,conf:q?mm.conf:"low",unit:u});
+  });
+  renderDraft();
+});
+function renderDraft(){
+  var box=$("draft");box.textContent="";if(!draft.length)return;
+  var t=el("table",{cls:"draft"}),tb=el("tbody");
+  t.appendChild(el("thead",null,[el("tr",null,[el("th",{text:"You wrote"}),el("th",{text:"Item"}),el("th",{cls:"r",text:"Qty"}),el("th",{text:"Expires"})])]));
+  draft.forEach(function(d,i){
+    var s=el("select",{cls:"cell","aria-label":"Item for "+d.line,id:"dr-it-"+i});s.appendChild(el("option",{value:"",text:"— choose —"}));
+    S.items.forEach(function(it){if(it.gone)return;var o=el("option",{value:it.id,text:it.name});if(d.it&&d.it.id===it.id)o.selected=true;s.appendChild(o)});
+    s.addEventListener("change",function(){d.it=item(s.value);d.conf="high"});
+    var q=el("input",{cls:"cell num",type:"number",min:"0",step:"any",value:d.qty,"aria-label":"Quantity for "+d.line,id:"dr-q-"+i});q.addEventListener("change",function(){d.qty=+q.value});
+    var line=el("td",{cls:"ro",text:d.line});if(d.conf!=="high")line.appendChild(el("div",{cls:"flag",text:d.it?"check the match":"no match, pick one"}));
+    tb.appendChild(el("tr",null,[line,el("td",null,[s]),el("td",{cls:"r"},[q]),el("td",{cls:"ro num",text:d.exp?nice(d.exp):"blank, not guessed"})]));
+  });
+  t.appendChild(tb);
+  var wrap=el("div",{cls:"scroll",style:"margin-top:12px"},[t]);box.appendChild(wrap);
+  var ok=el("button",{cls:"btn primary",type:"button",text:"Confirm and save",style:"margin-top:10px"});
+  ok.addEventListener("click",function(){var n=0;draft.forEach(function(d){if(d.it&&d.qty>0){newMove({item:d.it.id,kind:"receive",qty:d.qty,date:TODAY,expires:d.exp||defExp(d.it,TODAY),note:"pasted list",via:"ai_text"});n++}});draft=[];box.textContent="";commit(n+" entr"+(n===1?"y":"ies")+" saved")});
+  box.appendChild(ok);
+}
+
+/* ---------- import / export ---------- */
+function csvEsc(v){v=v==null?"":String(v);return /[",\n]/.test(v)?'"'+v.replace(/"/g,'""')+'"':v}
+function exportCsv(F){
+  var rows=[["name","category","unit","lb_per_unit","location","par","on_hand","on_hand_lb","weekly_use","weeks_cover","runs_out","order_by","need_qty","need_lb","status","next_expiry"]];
+  F.forEach(function(f){rows.push([f.it.name,f.it.category,f.it.unit,f.it.lb,f.it.location,f.it.par,f.onHand,round2(f.onHand*(f.it.lb||0)),f.U?round2(f.U):"",f.cover!=null?round2(f.cover):"",f.runOut||"",f.orderBy||"",f.need,f.needLb,f.level,f.nextExp||""])});
+  return rows.map(function(r){return r.map(csvEsc).join(",")}).join("\n");
+}
+function needsText(){var P=snapshot(all());return "We need (as of "+nice(P.date)+"):\n"+P.items.map(function(n){return "• "+n.name+" — "+fmt(n.need,0)+" "+n.unit+(n.level==="critical"?" (urgent)":"")}).join("\n")}
+function copy(text,btn){var done=function(){toast("Copied")};try{navigator.clipboard.writeText(text).then(done,function(){fallback()})}catch(e){fallback()}
+  function fallback(){var ta=$("csvout");ta.value=text;ta.focus();ta.select();toast("Selected. Press Ctrl/Cmd+C to copy.")}}
+$("copycsv").addEventListener("click",function(){copy($("csvout").value)});
+$("copyneeds").addEventListener("click",function(){copy(needsText())});
+function parseCsv(t){var out=[],row=[],cur="",q=false;for(var i=0;i<t.length;i++){var c=t[i];if(q){if(c==='"'){if(t[i+1]==='"'){cur+='"';i++}else q=false}else cur+=c}else if(c==='"')q=true;else if(c===","){row.push(cur);cur=""}else if(c==="\n"||c==="\r"){if(c==="\r"&&t[i+1]==="\n")i++;row.push(cur);out.push(row);row=[];cur=""}else cur+=c}if(cur||row.length){row.push(cur);out.push(row)}return out.filter(function(r){return r.some(function(x){return x.trim()})})}
+function doImport(text){
+  var rows=parseCsv(text);if(rows.length<2){toast("Need a header row and at least one item.");return}
+  var h=rows[0].map(function(x){return x.trim().toLowerCase()}),ix=function(n){return h.indexOf(n)};
+  if(ix("name")<0){toast("The CSV needs a 'name' column.");return}
+  var added=0,counted=0;
+  rows.slice(1).forEach(function(r){
+    var g=function(n){var i=ix(n);return i<0?"":(r[i]||"").trim()},name=g("name");if(!name)return;
+    var it=byName(name);
+    if(!it){it={id:"i"+Date.now().toString(36)+added,name:name,category:CATS[g("category")]?g("category"):"Protein",unit:UNITS.indexOf(g("unit"))>=0?g("unit"):"each",lb:+g("lb_per_unit")||null,location:LOCS.indexOf(g("location"))>=0?g("location"):LOCS[0],par:+g("par")||null,policy:/formula|baby/i.test(name)?"hard":"soft",shelfDays:0};S.items.push(it);added++}
+    else{if(g("par"))it.par=+g("par");if(g("lb_per_unit"))it.lb=+g("lb_per_unit")}
+    if(g("on_hand")!==""){var cur=replay(it).onHand,d=round2(+g("on_hand")-cur);if(d&&!isNaN(d)){newMove({item:it.id,kind:"adjust",qty:d,date:TODAY,expires:null,note:"import",via:"import"});counted++}}
+  });
+  commit(added+" added, "+counted+" counted");
+}
+$("doimport").addEventListener("click",function(){doImport($("csvin").value)});
+$("csvfile").addEventListener("change",function(e){var f=e.target.files[0];if(!f)return;var r=new FileReader();r.onload=function(){$("csvin").value=r.result;doImport(r.result)};r.readAsText(f);e.target.value=""});
+$("reset").addEventListener("click",function(){$("resetask").hidden=false});
+$("resetno").addEventListener("click",function(){$("resetask").hidden=true});
+$("resetyes").addEventListener("click",function(){S=sample();S.published=snapshot(all());$("resetask").hidden=true;commit("Example data restored")});
+
+/* ---------- sheet controls ---------- */
+var fc=$("fcat");fc.appendChild(el("option",{value:"",text:"All categories"}));Object.keys(CATS).forEach(function(c){fc.appendChild(el("option",{value:c,text:c}))});
+$("q").addEventListener("input",function(){renderSheet(all())});fc.addEventListener("change",function(){renderSheet(all())});
+$("addrow").addEventListener("click",function(){var n=1;while(byName("New item "+n))n++;var it={id:"i"+Date.now().toString(36),name:"New item "+n,category:"Protein",unit:"each",lb:null,location:LOCS[0],par:null,policy:"soft",shelfDays:0};S.items.push(it);$("q").value="";fc.value="";commit("Item added");var e=$("c-"+it.id+"-name");if(e){e.focus();e.select()}});
+$("season").value=S.settings.season;$("lead").value=S.settings.lead;
+$("season").addEventListener("change",function(){var v=+$("season").value;S.settings.season=v>0?v:1;commit("Forecast updated")});
+$("lead").addEventListener("change",function(){var v=+$("lead").value;S.settings.lead=v>=0?v:7;commit("Forecast updated")});
+$("publish").addEventListener("click",function(){S.published=snapshot(all());save();renderAll();toast("Website updated");document.getElementById("need").scrollIntoView({behavior:"smooth"})});
+
+/* tabs */
+var tabs=document.querySelectorAll('[role=tab]');
+tabs.forEach(function(t){t.addEventListener("click",function(){tabs.forEach(function(x){var on=x===t;x.setAttribute("aria-selected",String(on));$(x.getAttribute("aria-controls")).hidden=!on});try{localStorage.setItem(KEY+".tab",t.id)}catch(e){}})});
+try{var tt=localStorage.getItem(KEY+".tab");if(tt&&$(tt))$(tt).click()}catch(e){}
+
+function renderAll(){
+  var F=all();
+  renderTiles(F);renderSheet(F);renderFc(F);renderMoves();renderBoard();
+  $("csvout").value=exportCsv(F);
+  var dl=$("itemlist");dl.textContent="";S.items.forEach(function(it){if(!it.gone)dl.appendChild(el("option",{value:it.name}))});
+}
+function commit(msg){save();renderAll();if(msg)toast(msg)}
+if(!S.published){S.published=snapshot(all());save()}
+renderAll();
+})();
+</script>
+</body>
+</html>
