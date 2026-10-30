@@ -36,3 +36,4 @@
   Receive (rows + paste-to-fill), Count by shelf, Shelf with −/+ steppers,
   Forecast in sentences, Website publish, Import/export. Item drawer edits
   fields and shows history; every action can be undone by a reversing entry.
+- Receive has a photo scan step. The demo drafts rows from an illustrated sample photo; drafting from real photos needs the Claude call in the Django app.
