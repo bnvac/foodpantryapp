@@ -17,3 +17,23 @@
 * **Decisions/Changes**: Railway approved. AI model is claude-haiku-5-5 (cheap tier) at effort low, with no server-side fallback (refusals go to manual entry). Public page parked. Confirmed stack is in DESIGN.md §11: Python 3.12, Django 5.2 LTS, SQLite on a Railway volume, gunicorn, whitenoise, vanilla JS, anthropic SDK.
 * **Known Bugs/Gaps**: Whose Anthropic account holds the API key is still open. No code yet; next is M0 (skeleton, models, admin, ledger, Railway deploy).
 <!-- MEMORY_UPDATE_END -->
+
+## 2026-10-30 — browser prototype (Smart Shelf)
+
+- `prototype/index.html`: a single-file, no-backend demo of the stockroom for the
+  portfolio. Editable sheet, typed + paste-a-list intake with review, append-only
+  log with reversing "undo", the §6.5 forecast (EWMA α 0.3, stock-out weeks
+  excluded, expiring hard/perishable stock subtracted, levels by category target
+  weeks, shortfall) and a public "we need" board updated by a Publish button.
+- State lives in localStorage; example data is generated relative to today.
+- Not the production app. Deliberate gaps vs DESIGN.md: no auth, no Claude call
+  (paste parser is regex + word match), no 15% level hysteresis, a "case" is
+  assumed to be 12 units. The Django build (M0–M3) is still to do.
+- Renamed to **Smart Shelf** for the public pages. "How it works" replaced with
+  worked examples (distribution day, truck unload, food-bank order, food drive,
+  Thanksgiving multiplier, formula use-by) and who it's for.
+- Rebuilt the prototype as an app: Today, Give out (tap tiles, one Log button),
+  Receive (rows + paste-to-fill), Count by shelf, Shelf with −/+ steppers,
+  Forecast in sentences, Website publish, Import/export. Item drawer edits
+  fields and shows history; every action can be undone by a reversing entry.
+- Receive has a photo scan step. The demo drafts rows from an illustrated sample photo; drafting from real photos needs the Claude call in the Django app.
